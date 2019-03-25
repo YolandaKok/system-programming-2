@@ -11,6 +11,8 @@ num_of_dirs=$3
 # Levels of the directories
 levels=$4
 
+# TODO: Check if zero parameters
+
 # Check if num_of_files and num_of_dirs are greater than zero
 if [[ "$2" -lt "0" ]] || [[ "$2" -eq "0" ]]; then
     echo Error with number of files
@@ -88,6 +90,9 @@ current_directory="$dir_name"
 for((i=0;i<$num_of_files;i++)); do
     path_to_file="${Directory_Names_New[j]}/${File_Names[i]}"
     touch ${path_to_file}
+    num_of_characters=$(( (( RANDOM % ((1024 * 128))) + 1024)))
+    echo ${num_of_characters}
+    cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w ${num_of_characters} | head -n 1 > ${path_to_file}
     echo ${path_to_file}
     j=$((j+1))
     if [[ "$j" -eq "$num_of_dirs+1" ]]; then
