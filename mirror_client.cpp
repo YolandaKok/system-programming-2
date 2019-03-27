@@ -10,6 +10,7 @@
 #include <math.h>
 #include <sys/stat.h>
 #include <wait.h>
+#include "LinkedList.h"
 
 #define EVENT_SIZE  ( sizeof (struct inotify_event) )
 #define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
@@ -52,60 +53,123 @@ int main(int argc, char *argv[]) {
 
     DIR *d;
     pid_t pid, pid1;
-    d = opendir(common_dir);
     struct dirent *dir;
     struct stat s;
-    char* ids[5];
-    if (d) {
-        while ((dir = readdir(d)) != NULL) {
-            if (stat(dir->d_name,&s) != 0) {
-                /* is this a regular file? */
-                printf("%s\n", dir->d_name);
-                ids[0] = dir->d_name;
-                if(atoi(ids[0]) == 0) {
-                    ids[0] = "2";
-                    break;
+    // Create a list to keep the ids
+    LinkedList *list = new LinkedList();
+
+    while(1) {
+        d = opendir(common_dir);
+        // Find the directories
+        if (d) {
+            while ((dir = readdir(d)) != NULL) {
+                if (stat(dir->d_name, &s) != 0) {
+                    int ok;
+                    if(dir->d_name[strlen(dir->d_name)-1] == 'd')
+                        ok = 1;
+                    else
+                        ok = 0;
+                    /* is this a regular file? */
+                    int found = list->find(dir->d_name);
+                    if (found == 0 && (atoi(dir->d_name) != id) && ok == 1) {
+                        printf("%s\n", dir->d_name);
+                        // Fork two processes
+                        list->add(dir->d_name);
+                        printf("Parent Process \n");
+                        int status;
+                        switch(pid = fork()) {
+                            case -1:
+                                perror("fork error");
+                                exit(4);
+                            case 0:
+                            {
+                                printf("Child Process2 for write to pipe %d\n", getpid());
+                                char buffer4[80];
+                                sprintf(buffer4, "common/id%d_to_id%d.fifo", id, atoi(dir->d_name));
+                                mkfifo(buffer4, 0777);
+                                int fd6 = open(buffer4, O_WRONLY | O_CREAT, 0777);
+                                // Find the files that you want to send
+                                DIR *d1;
+                                d1 = opendir(input_dir);
+                                struct dirent *dir1;
+                                struct stat s1;
+                                char arr1[50];
+                                if (d1) {
+                                    while ((dir1 = readdir(d1)) != NULL) {
+                                        if (stat(dir1->d_name,&s1) != 0) {
+                                            printf("%s Send\n", dir1->d_name);
+                                            sprintf(arr1, "%hu", strlen(dir1->d_name));
+                                            write(fd6, arr1, 2);
+                                            strcpy(arr1, dir1->d_name);
+                                            write(fd6, arr1, strlen(dir1->d_name));
+                                        }
+                                    }
+                                    strcpy(arr1, "00");
+                                    write(fd6, arr1, 2);
+                                    closedir(d1);
+                                }
+                                exit(0);
+                                break;
+                            }
+                            default:
+                            {
+                                // Parent Process
+                                switch(pid1 = fork()) {
+                                    case -1:
+                                        perror("fork error");
+                                        exit(5);
+                                    case 0:
+                                    {
+                                        printf("Child Process For Read %d\n", getpid());
+                                        char buffer3[80];
+                                        sprintf(buffer3, "common/id%d_to_id%d.fifo", atoi(dir->d_name), id);
+                                        mkfifo(buffer3, 0777);
+                                        int fd5 = open(buffer3, O_RDONLY | O_CREAT, 0777);
+                                        int nread;
+                                        char str1[50];
+                                        //do {
+                                        while((nread = read(fd5, str1, 50)) > 0) {
+                                            printf("%c Received\n", str1[0]);
+                                            for( int i = 0; i < nread; i++ )
+                                                printf("Char%d: %c\n", i, str1[i]);
+                                            printf("%d \n", nread);
+                                        }
+                                        //}while(strcmp(str1, "00") != 0);
+                                        exit(0);
+                                        break;
+                                    }
+                                    default:
+                                        int stat;
+                                        pid_t pid;
+                                        // Parent Process
+                                        printf("Parent Process xixi\n");
+                                        pid = waitpid(-1, &stat, WNOHANG);
+                                        if(pid > 0)
+                                            printf("child %d terminated\n", pid);
+                                        break;
+                                }
+                                break;
+                            }
+                        }
+                        wait(&status);
+                    }
                 }
             }
+            closedir(d);
         }
-        closedir(d);
     }
 
     /* For every untraced file make a fifo */
+/*
     printf("Parent Process \n");
-    /* Keep the file names */
     int status;
     switch(pid = fork()) {
         case -1:
             perror("fork error");
             exit(4);
         case 0:
-            {   printf("Child Process2 for write to pipe %d\n", getpid());
-                char buffer4[80];
-                sprintf(buffer4, "common/id%d_to_id%d.fifo", id, atoi(ids[0]));
-                mkfifo(buffer4, 0777);
-                int fd6 = open(buffer4, O_WRONLY | O_CREAT, 0777);
-                // Find the files that you want to send
-                DIR *d1;
-                d1 = opendir(input_dir);
-                struct dirent *dir1;
-                struct stat s1;
-                char arr1[50];
-                if (d1) {
-                    while ((dir1 = readdir(d1)) != NULL) {
-                        if (stat(dir1->d_name,&s1) != 0) {
-                            printf("%s Send\n", dir1->d_name);
-                            sprintf(arr1, "%hu", strlen(dir1->d_name));
-                            write(fd6, arr1, 2);
-                            strcpy(arr1, dir1->d_name);
-                            write(fd6, arr1, strlen(dir1->d_name));
-                        }
-                    }
-                    strcpy(arr1, "00");
-                    write(fd6, arr1, 2);
-                    closedir(d1);
-                }
-                exit(0);
+            {
+                writeProcess();
                 break;
             }
         default:
@@ -117,34 +181,24 @@ int main(int argc, char *argv[]) {
                     exit(5);
                 case 0:
                     {
-                        printf("Child Process For Read %d\n", getpid());
-                        char buffer3[80];
-                        sprintf(buffer3, "common/id%d_to_id%d.fifo", atoi(ids[0]), id);
-                        mkfifo(buffer3, 0777);
-                        int fd5 = open(buffer3, O_RDONLY | O_CREAT, 0777);
-                        int nread;
-                        char str1[50];
-                        //do {
-                            while((nread = read(fd5, str1, 50)) > 0) {
-                                printf("%c Received\n", str1[0]);
-                                for( int i = 0; i < nread; i++ )
-                                    printf("Char%d: %c\n", i, str1[i]);
-                                printf("%d \n", nread);
-                            }
-                       // }while(strcmp(str1, "00") != 0);
-                       // exit(0);
+                        readProcess();
+                        break;
                     }
                 default:
+                    int stat;
+                    pid_t pid;
                     // Parent Process
-                    printf("Parent Process\n");
-                    wait(&status);
+                    printf("Parent Process xixi\n");
+                    pid = waitpid(-1, &stat, WNOHANG);
+                    if(pid > 0)
+                        printf("child %d terminated\n", pid);
                     break;
             }
             break;
         }
     }
     wait(&status);
-
+*/
     /* Deallocate Memory */
     free(common_dir); free(input_dir); free(mirror_dir); free(log_file);
 }

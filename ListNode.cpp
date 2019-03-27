@@ -34,6 +34,8 @@ void ListNode::insert(char* id, ListNode *head) {
 }
 
 int ListNode::find(char *id, ListNode *head) {
+    if(head->id == NULL)
+        return 0;
     int found = 0;
     /* Add to the wallet */
     ListNode *current = head;
