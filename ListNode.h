@@ -16,8 +16,8 @@ class ListNode {
         void insert(char* id, ListNode *head);
         ListNode* getNext();
         void print();
-        int getBalance();
         int find(char *id, ListNode *head);
+        char* getItem(int i, ListNode *head);
         ~ListNode();
 };
 

@@ -49,6 +49,17 @@ int ListNode::find(char *id, ListNode *head) {
     return 0;
 }
 
+char* ListNode::getItem(int i, ListNode *head) {
+    ListNode *current = head;
+    int count = 0;
+    while( current != NULL ) {
+        if(count == i)
+            return current->id;
+        current = current->next;
+        count++;
+    }
+}
+
 void ListNode::print() {
     ListNode *current = this;
     while( current != NULL ) {

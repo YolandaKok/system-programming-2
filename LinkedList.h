@@ -10,11 +10,14 @@
 class LinkedList {
     private:
         ListNode *head;
+        int size;
     public:
         LinkedList();
         void add(char *id);
         int find(char *id);
         void print();
+        char* getItem(int i);
+        int length();
         // Delete
         ~LinkedList();
 };
