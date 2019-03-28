@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <sys/stat.h>
+#include <errno.h>
 #include <wait.h>
 #include "LinkedList.h"
 
@@ -99,6 +100,10 @@ int main(int argc, char *argv[]) {
                                         if (stat(dir1->d_name,&s1) != 0) {
                                             printf("%s Send\n", dir1->d_name);
                                             sprintf(arr1, "%hu", strlen(dir1->d_name));
+                                            if(strlen(dir1->d_name) <= 9) {
+                                                arr1[0] = '0';
+                                                sprintf(&arr1[1], "%hu", strlen(dir1->d_name));
+                                            }
                                             write(fd6, arr1, 2);
                                             strcpy(arr1, dir1->d_name);
                                             write(fd6, arr1, strlen(dir1->d_name));
@@ -123,18 +128,52 @@ int main(int argc, char *argv[]) {
                                         printf("Child Process For Read %d\n", getpid());
                                         char buffer3[80];
                                         sprintf(buffer3, "common/id%d_to_id%d.fifo", atoi(dir->d_name), id);
+                                        int id2 = atoi(dir->d_name);
                                         mkfifo(buffer3, 0777);
                                         int fd5 = open(buffer3, O_RDONLY | O_CREAT, 0777);
-                                        int nread;
+                                        int nread, nread1;
                                         char str1[50];
-                                        //do {
-                                        while((nread = read(fd5, str1, 50)) > 0) {
-                                            printf("%c Received\n", str1[0]);
-                                            for( int i = 0; i < nread; i++ )
-                                                printf("Char%d: %c\n", i, str1[i]);
-                                            printf("%d \n", nread);
-                                        }
-                                        //}while(strcmp(str1, "00") != 0);
+                                        char str2[2];
+                                        do {
+                                            nread1 = read(fd5, str2, 2);
+                                            printf("Length of the filename: %c %c\n", str2[0], str2[1]);
+                                            int x1 = str2[0] - '0';
+                                            int x2 = str2[1] - '0';
+                                            printf("%d x1 %d x2\n", x1, x2);
+                                            int number = x1 * 10 + x2;
+                                            printf("%d NUMBER\n", number);
+                                            if(str2[0] == '0' && str2[1] == '0')
+                                                break;
+                                            read(fd5, str1, number);
+                                            str1[number] = '\0';
+                                            printf("Name %s\n", str1);
+                                            // Let's create the file
+                                            char buffer4[80];
+                                            sprintf(buffer4, "%d.mirror/%d", id, atoi(dir->d_name));
+                                            // Check if directory exists
+                                            DIR* dir = opendir("mydir");
+                                            if (dir)
+                                            {
+                                                char buffer5[80];
+                                                /* Write the file inside it */
+                                                sprintf(buffer5, "%d.mirror/%d/%s", id, id2, str1);
+                                                open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
+                                                /* Directory exists. */
+                                                closedir(dir);
+                                            }
+                                            else if (ENOENT == errno)
+                                            {
+                                                /* Create the file inside it */
+                                                /* Directory does not exist. */
+                                                mkdir(buffer4, 0777);
+                                                char buffer5[80];
+                                                /* Write the file inside it */
+                                                sprintf(buffer5, "%d.mirror/%d/%s", id, id2, str1);
+                                                open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
+                                            }
+                                            // If does not exists just create it
+                                            // create the file and put it inside
+                                        }while(!(str2[0] == '0' && str2[1] == '0'));
                                         exit(0);
                                         break;
                                     }
@@ -151,12 +190,16 @@ int main(int argc, char *argv[]) {
                                 break;
                             }
                         }
-                        wait(&status);
-                    }
+                      }
                 }
             }
             closedir(d);
         }
+        int stat;
+        pid_t pid;
+        pid = waitpid(-1, &stat, WNOHANG);
+        if(pid > 0)
+            printf("child %d terminated\n", pid);
     }
 
     /* For every untraced file make a fifo */
