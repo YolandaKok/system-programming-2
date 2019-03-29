@@ -15,6 +15,11 @@ void LinkedList::add(char *id) {
     this->size += 1;
 }
 
+void LinkedList::add(char *id, int regular) {
+    this->head->insert(id, this->head, regular);
+    this->size += 1;
+}
+
 int LinkedList::find(char *id) {
     return this->head->find(id, this->head);
 }
@@ -25,6 +30,10 @@ void LinkedList::print() {
 
 char* LinkedList::getItem(int i) {
     return this->head->getItem(i, this->head);
+}
+
+ListNode* LinkedList::getListNodeItem(int i) {
+    return this->head->getItemNode(i, this->head);
 }
 
 int LinkedList::length() {

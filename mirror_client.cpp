@@ -94,8 +94,16 @@ int main(int argc, char *argv[]) {
                                 char arr1[50];
                                 LinkedList *list = new LinkedList();
                                 listdir(input_dir, 0, list);
+                                /* Remove the prefix from all */
+                                removeInputDirectoryFromList(input_dir, list);
+                                printf("%d list length\n", list->length());
                                 /* List Contains all the files */
-                                for(int i = 0; i < list.length(); i++) {
+                                for(int i = 0; i < list->length(); i++) {
+                                    /* Send if it is regular or not */
+                                    int regular = list->getListNodeItem(i)->getRegular();
+                                    char file[2];
+                                    sprintf(file, "%hu", regular);
+                                    write(fd6, file, 2);
                                     // Send the list of files and directories
                                     printf("%s Send\n", list->getItem(i));
                                     sprintf(arr1, "%hu", strlen(list->getItem(i)));
@@ -107,26 +115,15 @@ int main(int argc, char *argv[]) {
                                     strcpy(arr1, list->getItem(i));
                                     write(fd6, arr1, strlen(list->getItem(i)));
                                 }
-                                /*if (d1) {
-                                    while ((dir1 = readdir(d1)) != NULL) {
-                                        if (stat(dir1->d_name,&s1) != 0) {
-                                            printf("%s Send\n", dir1->d_name);
-                                            sprintf(arr1, "%hu", strlen(dir1->d_name));
-                                            if(strlen(dir1->d_name) <= 9) {
-                                                arr1[0] = '0';
-                                                sprintf(&arr1[1], "%hu", strlen(dir1->d_name));
-                                            }
-                                            write(fd6, arr1, 2);
-                                            strcpy(arr1, dir1->d_name);
-                                            write(fd6, arr1, strlen(dir1->d_name));
-                                        }
-                                    }
-                                    strcpy(arr1, "00");
-                                    write(fd6, arr1, 2);
-                                    closedir(d1);
-                                }*/
+                                printf("xexexexe\n");
+                                int regular = 2;
+                                char file[2];
+                                sprintf(file, "%hu", regular);
+                                write(fd6, file, 2);
+                                char arrr[2];
+                                strcpy(arrr, "00");
+                                write(fd6, arrr, 2);
                                 exit(0);
-                                break;
                             }
                             default:
                             {
@@ -146,7 +143,12 @@ int main(int argc, char *argv[]) {
                                         int nread, nread1;
                                         char str1[50];
                                         char str2[2];
+                                        char file[2];
+                                        int count = 0;
                                         do {
+                                            read(fd5, file, 2);
+                                            int f = file[0] - '0';
+                                            printf("%d xxxxxx\n", f);
                                             nread1 = read(fd5, str2, 2);
                                             printf("Length of the filename: %c %c\n", str2[0], str2[1]);
                                             int x1 = str2[0] - '0';
@@ -156,46 +158,48 @@ int main(int argc, char *argv[]) {
                                             printf("%d NUMBER\n", number);
                                             if(str2[0] == '0' && str2[1] == '0')
                                                 break;
-                                            // Read the name of the file or directory
-                                            read(fd5, str1, number);
-                                            str1[number] = '\0';
-                                            if(isRegular(str1)) {
 
+                                            if(f) {
+                                                // Read the name of the file or directory
+                                                read(fd5, str1, number);
+                                                str1[number] = '\0';
                                                 printf("Name %s\n", str1);
                                                 // Let's create the file
                                                 char buffer4[80];
                                                 sprintf(buffer4, "%d.mirror/%d", id, atoi(dir->d_name));
+                                                printf("%s xixi\n", buffer4);
                                                 // Check if directory exists
                                                 DIR* dir = opendir(buffer4);
                                                 if (dir)
                                                 {
                                                     char buffer5[80];
-                                                    /* Write the file inside it */
-                                                    sprintf(buffer5, "%d.mirror/%d/%s", id, id2, str1);
+                                                    sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+                                                    printf("Lolo: %s\n", buffer5);
                                                     open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
-                                                    /* Directory exists. */
                                                     closedir(dir);
                                                 }
                                                 else if (ENOENT == errno)
                                                 {
-                                                    /* Create the file inside it */
-                                                    /* Directory does not exist. */
                                                     mkdir(buffer4, 0777);
                                                     char buffer5[80];
-                                                    /* Write the file inside it */
-                                                    sprintf(buffer5, "%d.mirror/%d/%s", id, id2, str1);
+                                                    sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+                                                    printf("Loli: %s\n", buffer5);
                                                     open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
                                                 }
                                             }
                                             else {
-                                                // mkdir
+                                                read(fd5, str1, number);
+                                                str1[number] = '\0';
+                                                printf("Name %s\n", str1);
+                                                char buffer5[80];
+                                                sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+                                                mkdir(buffer5, 0777);
                                             }
-
+                                            count++;
                                             // If does not exists just create it
                                             // create the file and put it inside
                                         }while(!(str2[0] == '0' && str2[1] == '0'));
                                         exit(0);
-                                        break;
                                     }
                                     default:
                                         int stat;

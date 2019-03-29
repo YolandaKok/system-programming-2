@@ -18,6 +18,29 @@ ListNode::ListNode(char* id) {
     this->next = NULL;
 }
 
+ListNode::ListNode(char* id, int regular) {
+    this->id = (char*)malloc(strlen(id) + 1);
+    strcpy(this->id, id);
+    this->regular = regular;
+    this->next = NULL;
+}
+
+void ListNode::insert(char* id, ListNode *head, int regular) {
+    if(head->id != NULL) {
+        ListNode *current = head;
+        while(current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new ListNode(id, regular);
+    }
+    else {
+        head->id = (char*)malloc(strlen(id) + 1);
+        strcpy(head->id, id);
+        head->regular = regular;
+        head->next = NULL;
+    }
+}
+
 void ListNode::insert(char* id, ListNode *head) {
     if(head->id != NULL) {
         ListNode *current = head;
@@ -55,6 +78,21 @@ char* ListNode::getItem(int i, ListNode *head) {
     while( current != NULL ) {
         if(count == i)
             return current->id;
+        current = current->next;
+        count++;
+    }
+}
+
+int ListNode::getRegular() {
+    return this->regular;
+}
+
+ListNode* ListNode::getItemNode(int i, ListNode *head) {
+    ListNode *current = head;
+    int count = 0;
+    while( current != NULL ) {
+        if(count == i)
+            return current;
         current = current->next;
         count++;
     }

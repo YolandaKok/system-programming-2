@@ -17,6 +17,17 @@
 #include <wait.h>
 #include "LinkedList.h"
 
+int isRegular(char *path) {
+    struct stat s1;
+    stat(path, &s1);
+    if(S_ISREG(s1.st_mode)) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
 void listdir(const char *name, int level, LinkedList *list)
 {
     DIR *dir;
@@ -35,39 +46,43 @@ void listdir(const char *name, int level, LinkedList *list)
             if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
                 continue;
             //printf("Path: %s Directory: %*s%s\n", path, level*2, "", entry->d_name);
-            list->add(path);
+            list->add(path, isRegular(path));
             listdir(path, level + 1, list);
         }
         else{
             char path[1024];
             int len = snprintf(path, sizeof(path)-1, "%s/%s", name, entry->d_name);
             //printf("Path %s, File: %*s- %s\n", path, level*2, "", entry->d_name);
-            list->add(path);
+            list->add(path, isRegular(path));
         }
     } while (entry = readdir(dir));
     closedir(dir);
 }
-int isRegular(char *path) {
-    struct stat s1;
-    stat(path, &s1);
-    if(S_ISREG(s1.st_mode)) {
-        return 1;
-    }
-    else {
-        return 0;
+
+
+void removeInputDirectory(char *path, char *input_prefix) {
+    int n = strlen(input_prefix);
+    size_t len = strlen(path);
+    if (n > len)
+        return;  // Or: n = len;
+    memmove(path, path+n, len - n + 1);
+}
+
+
+void removeInputDirectoryFromList(char *input_prefix, LinkedList *list) {
+    for(int i = 0; i < list->length(); i++) {
+        removeInputDirectory(list->getItem(i), input_prefix);
     }
 }
 
 
-int main(int argc, char *argv[]) {
+/*int main(int argc, char *argv[]) {
     LinkedList *list = new LinkedList();
     listdir(argv[1], 0, list);
-    //list->print();
+    removeInputDirectoryFromList(argv[1], list);
     for(int i = 0; i < list->length(); i++) {
-        printf("%s %d\n", list->getItem(i), isRegular(list->getItem(i)));
+        printf("%s %d\n", list->getItem(i), list->getListNodeItem(i)->getRegular());
     }
-    mkdir("4_input", 0777);
-    mkdir("4_input/yolanda", 0777);
 
     delete list;
-}
+}*/

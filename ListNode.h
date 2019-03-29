@@ -10,13 +10,18 @@ class ListNode {
     private:
         ListNode *next;
         char *id;
+        int regular;
     public:
         ListNode();
         ListNode(char* id);
+        ListNode(char* id, int regular);
         void insert(char* id, ListNode *head);
+        void insert(char* id, ListNode *head, int regular);
         ListNode* getNext();
         void print();
         int find(char *id, ListNode *head);
+        ListNode* getItemNode(int i, ListNode *head);
+        int getRegular();
         char* getItem(int i, ListNode *head);
         ~ListNode();
 };

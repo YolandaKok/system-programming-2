@@ -6,7 +6,9 @@ LinkedList.o: LinkedList.cpp
 	g++ -c LinkedList.cpp
 ListNode.o: ListNode.cpp
 	g++ -c ListNode.cpp
-all: mirror_client.o IOutils.o LinkedList.o ListNode.o
-	g++ -o mirror_client mirror_client.o IOutils.o LinkedList.o ListNode.o
+dfs_file.o: dfs_file.cpp
+	g++ -c dfs_file.cpp
+all: mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o
+	g++ -o mirror_client mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o
 clean:
 	rm -f *.o mirror_client
