@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include<fcntl.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <math.h>
 #include <sys/stat.h>
@@ -13,6 +13,7 @@
 #include <wait.h>
 #include "LinkedList.h"
 #include "dfs_directories.h"
+#include "readProcess.h"
 
 #define EVENT_SIZE  ( sizeof (struct inotify_event) )
 #define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
@@ -85,45 +86,8 @@ int main(int argc, char *argv[]) {
                                 exit(4);
                             case 0:
                             {
-                                printf("Child Process2 for write to pipe %d\n", getpid());
-                                char buffer4[80];
-                                sprintf(buffer4, "common/id%d_to_id%d.fifo", id, atoi(dir->d_name));
-                                mkfifo(buffer4, 0777);
-                                int fd6 = open(buffer4, O_WRONLY | O_CREAT, 0777);
-                                // Find the files that you want to send
-                                char arr1[50];
-                                LinkedList *list = new LinkedList();
-                                listdir(input_dir, 0, list);
-                                /* Remove the prefix from all */
-                                removeInputDirectoryFromList(input_dir, list);
-                                printf("%d list length\n", list->length());
-                                /* List Contains all the files */
-                                for(int i = 0; i < list->length(); i++) {
-                                    /* Send if it is regular or not */
-                                    int regular = list->getListNodeItem(i)->getRegular();
-                                    char file[2];
-                                    sprintf(file, "%hu", regular);
-                                    write(fd6, file, 2);
-                                    // Send the list of files and directories
-                                    printf("%s Send\n", list->getItem(i));
-                                    sprintf(arr1, "%hu", strlen(list->getItem(i)));
-                                    if(strlen(list->getItem(i)) <= 9) {
-                                        arr1[0] = '0';
-                                        sprintf(&arr1[1], "%hu", strlen(list->getItem(i)));
-                                    }
-                                    write(fd6, arr1, 2);
-                                    strcpy(arr1, list->getItem(i));
-                                    write(fd6, arr1, strlen(list->getItem(i)));
-                                }
-                                printf("xexexexe\n");
-                                int regular = 2;
-                                char file[2];
-                                sprintf(file, "%hu", regular);
-                                write(fd6, file, 2);
-                                char arrr[2];
-                                strcpy(arrr, "00");
-                                write(fd6, arrr, 2);
-                                exit(0);
+                                /* Read From the input directory */
+                                readProcess(id, dir, input_dir);
                             }
                             default:
                             {
@@ -190,10 +154,27 @@ int main(int argc, char *argv[]) {
                                             else {
                                                 read(fd5, str1, number);
                                                 str1[number] = '\0';
-                                                printf("Name %s\n", str1);
-                                                char buffer5[80];
-                                                sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
-                                                mkdir(buffer5, 0777);
+                                                printf("Name LALA%s\n", str1);
+                                                char buffer4[80];
+                                                sprintf(buffer4, "%d.mirror/%d", id, atoi(dir->d_name));
+                                                printf("%s xixi\n", buffer4);
+                                                // Check if directory exists
+                                                DIR* dir = opendir(buffer4);
+                                                if (dir)
+                                                {
+                                                    char buffer5[80];
+                                                    sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+                                                    printf("Lolo: %s\n", buffer5);
+                                                    mkdir(buffer5, 0777);
+                                                    closedir(dir);
+                                                }
+                                                else if (ENOENT == errno)
+                                                {
+                                                    mkdir(buffer4, 0777);
+                                                    char buffer5[80];
+                                                    sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+                                                    mkdir(buffer5, 0777);
+                                                }
                                             }
                                             count++;
                                             // If does not exists just create it
@@ -226,46 +207,6 @@ int main(int argc, char *argv[]) {
             printf("child %d terminated\n", pid);
     }
 
-    /* For every untraced file make a fifo */
-/*
-    printf("Parent Process \n");
-    int status;
-    switch(pid = fork()) {
-        case -1:
-            perror("fork error");
-            exit(4);
-        case 0:
-            {
-                writeProcess();
-                break;
-            }
-        default:
-        {
-            // Parent Process
-            switch(pid1 = fork()) {
-                case -1:
-                    perror("fork error");
-                    exit(5);
-                case 0:
-                    {
-                        readProcess();
-                        break;
-                    }
-                default:
-                    int stat;
-                    pid_t pid;
-                    // Parent Process
-                    printf("Parent Process xixi\n");
-                    pid = waitpid(-1, &stat, WNOHANG);
-                    if(pid > 0)
-                        printf("child %d terminated\n", pid);
-                    break;
-            }
-            break;
-        }
-    }
-    wait(&status);
-*/
     /* Deallocate Memory */
     free(common_dir); free(input_dir); free(mirror_dir); free(log_file);
 }
