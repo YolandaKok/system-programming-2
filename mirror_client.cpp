@@ -14,6 +14,7 @@
 #include "LinkedList.h"
 #include "dfs_directories.h"
 #include "readProcess.h"
+#include "writeProcess.h"
 
 #define EVENT_SIZE  ( sizeof (struct inotify_event) )
 #define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
@@ -87,7 +88,8 @@ int main(int argc, char *argv[]) {
                             case 0:
                             {
                                 /* Read From the input directory */
-                                readProcess(id, dir, input_dir);
+                                /* and write to pipe */
+                                writeProcess(id, dir, input_dir);
                             }
                             default:
                             {
@@ -98,89 +100,7 @@ int main(int argc, char *argv[]) {
                                         exit(5);
                                     case 0:
                                     {
-                                        printf("Child Process For Read %d\n", getpid());
-                                        char buffer3[80];
-                                        sprintf(buffer3, "common/id%d_to_id%d.fifo", atoi(dir->d_name), id);
-                                        int id2 = atoi(dir->d_name);
-                                        mkfifo(buffer3, 0777);
-                                        int fd5 = open(buffer3, O_RDONLY | O_CREAT, 0777);
-                                        int nread, nread1;
-                                        char str1[50];
-                                        char str2[2];
-                                        char file[2];
-                                        int count = 0;
-                                        do {
-                                            read(fd5, file, 2);
-                                            int f = file[0] - '0';
-                                            printf("%d xxxxxx\n", f);
-                                            nread1 = read(fd5, str2, 2);
-                                            printf("Length of the filename: %c %c\n", str2[0], str2[1]);
-                                            int x1 = str2[0] - '0';
-                                            int x2 = str2[1] - '0';
-                                            printf("%d x1 %d x2\n", x1, x2);
-                                            int number = x1 * 10 + x2;
-                                            printf("%d NUMBER\n", number);
-                                            if(str2[0] == '0' && str2[1] == '0')
-                                                break;
-
-                                            if(f) {
-                                                // Read the name of the file or directory
-                                                read(fd5, str1, number);
-                                                str1[number] = '\0';
-                                                printf("Name %s\n", str1);
-                                                // Let's create the file
-                                                char buffer4[80];
-                                                sprintf(buffer4, "%d.mirror/%d", id, atoi(dir->d_name));
-                                                printf("%s xixi\n", buffer4);
-                                                // Check if directory exists
-                                                DIR* dir = opendir(buffer4);
-                                                if (dir)
-                                                {
-                                                    char buffer5[80];
-                                                    sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
-                                                    printf("Lolo: %s\n", buffer5);
-                                                    open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
-                                                    closedir(dir);
-                                                }
-                                                else if (ENOENT == errno)
-                                                {
-                                                    mkdir(buffer4, 0777);
-                                                    char buffer5[80];
-                                                    sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
-                                                    printf("Loli: %s\n", buffer5);
-                                                    open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
-                                                }
-                                            }
-                                            else {
-                                                read(fd5, str1, number);
-                                                str1[number] = '\0';
-                                                printf("Name LALA%s\n", str1);
-                                                char buffer4[80];
-                                                sprintf(buffer4, "%d.mirror/%d", id, atoi(dir->d_name));
-                                                printf("%s xixi\n", buffer4);
-                                                // Check if directory exists
-                                                DIR* dir = opendir(buffer4);
-                                                if (dir)
-                                                {
-                                                    char buffer5[80];
-                                                    sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
-                                                    printf("Lolo: %s\n", buffer5);
-                                                    mkdir(buffer5, 0777);
-                                                    closedir(dir);
-                                                }
-                                                else if (ENOENT == errno)
-                                                {
-                                                    mkdir(buffer4, 0777);
-                                                    char buffer5[80];
-                                                    sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
-                                                    mkdir(buffer5, 0777);
-                                                }
-                                            }
-                                            count++;
-                                            // If does not exists just create it
-                                            // create the file and put it inside
-                                        }while(!(str2[0] == '0' && str2[1] == '0'));
-                                        exit(0);
+                                        readProcess(id, dir);
                                     }
                                     default:
                                         int stat;
