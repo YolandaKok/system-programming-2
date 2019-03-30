@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
                                         exit(5);
                                     case 0:
                                     {
-                                        readProcess(id, dir);
+                                        readProcess(id, dir, log_file);
                                     }
                                     default:
                                         int stat;
