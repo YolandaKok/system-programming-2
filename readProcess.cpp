@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include "dfs_directories.h"
 #include <errno.h>
+#include "IOutils.h"
 
 void readProcess(int id, struct dirent *dir, char *log_file) {
     printf("Child Process For Read %d\n", getpid());
@@ -90,7 +91,7 @@ void readProcess(int id, struct dirent *dir, char *log_file) {
             }
 
             /* Write to the file */
-            writeLogFile(log_file, str1, b);
+            writeLogFile(log_file, str1, b, 2, 0);
         }
         else {
             read(fd5, str1, number);
@@ -122,18 +123,4 @@ void readProcess(int id, struct dirent *dir, char *log_file) {
         // create the file and put it inside
     }while(!(str2[0] == '0' && str2[1] == '0'));
     exit(0);
-}
-
-
-void writeLogFile(char *log_file, char *filename, int bytes) {
-    /* Open the log file and create */
-    /*int fd = open(log_file, O_WRONLY | O_APPEND | O_CREAT, 0660);
-    char buffer[100];
-    sprintf(buffer, "Receive %s %d\n", filename, bytes);
-    write(fd, buffer, sizeof(buffer));
-    memset(buffer, 0, sizeof(buffer));
-    close(fd);*/
-    FILE *fp = fopen(log_file, "a");
-    fprintf(fp, "%s %s %d\n", "Received", filename, bytes);
-    fclose(fp);
 }

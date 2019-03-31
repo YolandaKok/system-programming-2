@@ -45,6 +45,8 @@ int main(int argc, char *argv[]) {
 
     char buffer[50];
 
+    writeLogFile(log_file, NULL, 0, 1, id);
+
     sprintf(buffer, "./common/%d.id", id);
     /* Write file with the id to the common dir */
     int fd;
@@ -89,7 +91,7 @@ int main(int argc, char *argv[]) {
                             {
                                 /* Read From the input directory */
                                 /* and write to pipe */
-                                writeProcess(id, dir, input_dir);
+                                writeProcess(id, dir, input_dir, log_file);
                             }
                             default:
                             {

@@ -5,6 +5,6 @@
 #ifndef SYSTEM_PROGRAMMING_2_WRITEPROCESS_H
 #define SYSTEM_PROGRAMMING_2_WRITEPROCESS_H
 
-void writeProcess(int id, struct dirent *dir, char *input_dir);
+void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file);
 
 #endif //SYSTEM_PROGRAMMING_2_WRITEPROCESS_H

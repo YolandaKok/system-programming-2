@@ -33,3 +33,27 @@ int readArgs(int argc, char* argv[], int& id, char*& common_dir, char*& input_di
         }
     }
 }
+
+void writeLogFile(char *log_file, char *filename, int bytes, int mode, int id) {
+    /* Open the log file and create */
+    /*int fd = open(log_file, O_WRONLY | O_APPEND | O_CREAT, 0660);
+    char buffer[100];
+    sprintf(buffer, "Receive %s %d\n", filename, bytes);
+    write(fd, buffer, sizeof(buffer));
+    memset(buffer, 0, sizeof(buffer));
+    close(fd);*/
+    FILE *fp = fopen(log_file, "a");
+    if(mode == 1) {
+        /* Write for the id */
+        fprintf(fp, "%s %d\n", "Client", id);
+    }
+    else if(mode == 2) {
+        /* Write for bytes received */
+        fprintf(fp, "%s %s %d\n", "Received", filename, bytes);
+    }
+    else if(mode == 3) {
+        /* Write for bytes sent */
+        fprintf(fp, "%s %s %d\n", "Sent", filename, bytes);
+    }
+    fclose(fp);
+}

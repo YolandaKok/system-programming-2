@@ -14,8 +14,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "dfs_directories.h"
+#include "IOutils.h"
 
-void writeProcess(int id, struct dirent *dir, char *input_dir) {
+void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file) {
     printf("Child Process2 for write to pipe %d\n", getpid());
     char buffer4[80];
     sprintf(buffer4, "common/id%d_to_id%d.fifo", id, atoi(dir->d_name));
@@ -71,10 +72,10 @@ void writeProcess(int id, struct dirent *dir, char *input_dir) {
                 }
                 fclose(fp);
             }
+            /* Open the file */
+            /* Write the data to the file */
+            writeLogFile(log_file, arr1, sz, 3, 0);
         }
-
-        /* Open the file */
-        /* Write the data to the file */
     }
     int regular = 2;
     char file[2];
