@@ -19,6 +19,7 @@ class LinkedList {
         void print();
         char* getItem(int i);
         ListNode* getListNodeItem(int i);
+        void deleteItem(char *item);
         int length();
         // Delete
         ~LinkedList();

@@ -57,14 +57,53 @@ int main(int argc, char *argv[]) {
     write(fd, buffer1, 5);
     close(fd);
 
-    DIR *d;
+    DIR *d, *d1;
     pid_t pid, pid1;
-    struct dirent *dir;
-    struct stat s;
+    struct dirent *dir, *dir1;
+    struct stat s, s1;
     // Create a list to keep the ids
     LinkedList *list = new LinkedList();
 
     while(1) {
+        /* Open the directory and find if some client has left the network */
+        LinkedList *list2 = new LinkedList();
+        d1 = opendir(common_dir);
+        int ok;
+        if(d1) {
+            while((dir1 = readdir(d1)) != NULL) {
+                if(dir1->d_name[strlen(dir1->d_name)-1] == 'd') {
+                    list2->add(dir1->d_name);
+                }
+            }
+        }
+        closedir(d1);
+
+        /* Check if everything in list 2 is also in list 1 */
+        for(int k = 0; k < list->length(); k++) {
+            if(list2->find(list->getItem(k))) {
+
+            }
+            else {
+                printf("Not Found\n");
+                char *item = list->getItem(k);
+                int id_item = atoi(list->getItem(k));
+                list->deleteItem(item);
+                pid_t pid2;
+                pid2 = fork();
+                if(pid2 == 0) {
+                    printf("Item: %d\n", id_item);
+                    printf("File: %s \n", mirror_dir);
+                    char buffer[100];
+                    sprintf(buffer, "%s/%d", mirror_dir, id_item);
+                    printf("%s \n", buffer);
+                    execl("/bin/rm", "rm", "-rf", buffer, NULL) ;
+                }
+                break;
+            }
+        }
+
+        delete list2;
+
         d = opendir(common_dir);
         // Find the directories
         if (d) {
@@ -100,19 +139,10 @@ int main(int argc, char *argv[]) {
                                     case -1:
                                         perror("fork error");
                                         exit(5);
-                                    case 0:
+                                    case 0: // Child Process for read
                                     {
                                         readProcess(id, dir, log_file);
                                     }
-                                    default:
-                                        int stat;
-                                        pid_t pid;
-                                        // Parent Process
-                                        printf("Parent Process xixi\n");
-                                        pid = waitpid(-1, &stat, WNOHANG);
-                                        if(pid > 0)
-                                            printf("child %d terminated\n", pid);
-                                        break;
                                 }
                                 break;
                             }

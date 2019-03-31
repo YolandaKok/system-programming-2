@@ -22,6 +22,7 @@ class ListNode {
         int find(char *id, ListNode *head);
         ListNode* getItemNode(int i, ListNode *head);
         int getRegular();
+        void deleteItem(char *item, ListNode **head);
         char* getItem(int i, ListNode *head);
         ~ListNode();
 };

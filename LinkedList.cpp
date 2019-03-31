@@ -11,16 +11,22 @@ LinkedList::LinkedList() {
 }
 
 void LinkedList::add(char *id) {
+    if(this->size == 0)
+        this->head = new ListNode();
     this->head->insert(id, this->head);
     this->size += 1;
 }
 
 void LinkedList::add(char *id, int regular) {
+    if(this->size == 0)
+        this->head = new ListNode();
     this->head->insert(id, this->head, regular);
     this->size += 1;
 }
 
 int LinkedList::find(char *id) {
+    if(this->size == 0)
+        return 0;
     return this->head->find(id, this->head);
 }
 
@@ -30,6 +36,11 @@ void LinkedList::print() {
 
 char* LinkedList::getItem(int i) {
     return this->head->getItem(i, this->head);
+}
+
+void LinkedList::deleteItem(char *item) {
+    this->head->deleteItem(item, &this->head);
+    this->size += -1;
 }
 
 ListNode* LinkedList::getListNodeItem(int i) {

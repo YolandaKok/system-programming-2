@@ -83,6 +83,35 @@ char* ListNode::getItem(int i, ListNode *head) {
     }
 }
 
+void ListNode::deleteItem(char *item, ListNode **head) {
+    // Store head node
+    ListNode *temp = *head, *prev;
+
+    // If head node itself holds the key to be deleted
+    if (temp != NULL && (strcmp(temp->id, item) == 0))
+    {
+        *head = temp->next;   // Changed head
+        delete temp;               // free old head
+        return;
+    }
+
+    // Search for the key to be deleted, keep track of the
+    // previous node as we need to change 'prev->next'
+    while (temp != NULL && (strcmp(temp->id, item) != 0))
+    {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    // If key was not present in linked list
+    if (temp == NULL) return;
+
+    // Unlink the node from linked list
+    prev->next = temp->next;
+
+    delete temp;  // Free memory
+}
+
 int ListNode::getRegular() {
     return this->regular;
 }
