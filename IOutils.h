@@ -10,4 +10,6 @@ int readArgs(int argc, char* argv[], int& id, char*& common_dir, char*& input_di
 
 void writeLogFile(char *log_file, char *filename, int bytes, int mode, int id);
 
+void catchinterrupt (int signo);
+
 #endif //SYSTEM_PROGRAMMING_2_IOUTILS_H

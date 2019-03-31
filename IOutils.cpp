@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <wait.h>
+#include <signal.h>
 
-// ./mirror_client -n 1 -c ./common -i ./1_input -m ./1_mirror -b 100 -l log_file1
+extern int client_id;
+extern char buffer_mirror[100];
 
 /* Read the arguments */
 int readArgs(int argc, char* argv[], int& id, char*& common_dir, char*& input_dir,
@@ -56,4 +60,31 @@ void writeLogFile(char *log_file, char *filename, int bytes, int mode, int id) {
         fprintf(fp, "%s %s %d\n", "Sent", filename, bytes);
     }
     fclose(fp);
+}
+
+void catchinterrupt (int signo) {
+    printf ( " \nCatching : signo =% d \n " , signo ) ;
+    printf ( "Catching : returning \n ");
+    printf("Client id: %d\n", client_id);
+    printf("Mirror dir: %s\n", buffer_mirror);
+    pid_t pid;
+    pid = fork();
+    if(pid == 0) {
+        execl("/bin/rm", "rm", "-rf", buffer_mirror, NULL) ;
+    }
+    else {
+        char buffer2[50];
+        sprintf(buffer2, "common/%d.id", client_id);
+        printf("lalalal\n");
+        pid_t pid2;
+        pid2 = fork();
+        if(pid2 == 0) {
+            execl("/bin/rm", "rm", buffer2, NULL);
+        }
+        else {
+            int status;
+            wait(&status);
+            kill(getpid(), SIGKILL);
+        }
+    }
 }

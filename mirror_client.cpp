@@ -15,9 +15,13 @@
 #include "dfs_directories.h"
 #include "readProcess.h"
 #include "writeProcess.h"
+#include <signal.h>
 
 #define EVENT_SIZE  ( sizeof (struct inotify_event) )
 #define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+
+int client_id;
+char buffer_mirror[100];
 
 int main(int argc, char *argv[]) {
     int id, buffer_size;
@@ -42,6 +46,15 @@ int main(int argc, char *argv[]) {
     if(opendir(common_dir) == NULL) {
         mkdir(common_dir, 0777);
     }
+
+    client_id = id;
+    strcpy(buffer_mirror, mirror_dir);
+    /* Initialize signal handler */
+    static struct sigaction act;
+    act.sa_handler = catchinterrupt;
+    sigfillset(&( act.sa_mask));
+    sigaction( SIGINT, &act , NULL);
+    /* End of signal handler initialization */
 
     char buffer[50];
 
