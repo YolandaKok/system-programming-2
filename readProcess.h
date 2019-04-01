@@ -5,6 +5,6 @@
 #ifndef SYSTEM_PROGRAMMING_2_READPROCESS_H
 #define SYSTEM_PROGRAMMING_2_READPROCESS_H
 
-void readProcess(int id, struct dirent *dir, char *log_file);
+void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size);
 
 #endif //SYSTEM_PROGRAMMING_2_READPROCESS_H

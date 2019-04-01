@@ -16,7 +16,7 @@
 #include "dfs_directories.h"
 #include "IOutils.h"
 
-void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file) {
+void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, int buffer_size) {
     printf("Child Process2 for write to pipe %d\n", getpid());
     char buffer4[80];
     sprintf(buffer4, "common/id%d_to_id%d.fifo", id, atoi(dir->d_name));
@@ -56,19 +56,29 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file) {
             fclose(fp);
             write(fd6, &sz, sizeof(sz));
             /* Loop to write the whole file */
-            char buffer[200];
+            char buffer[buffer_size];
+            int chunks = sz / sizeof(buffer);
             int bytesRead;
             if(sz > 0) {
                 fp = fopen(buff, "r");
                 if (fp != NULL)
                 {
                     // read up to sizeof(buffer) bytes
-                    while ((bytesRead = fread(buffer, 1, sizeof(buffer), fp)) > 0)
-                    {
+                    //while ((bytesRead = fread(buffer, 1, sizeof(buffer), fp)) > 0)
+                    //{
                         // process bytesRead worth of data in buffer
-                        write(fd6, buffer, sizeof(buffer));
-                        memset(buffer, 0, sizeof(buffer));
-                    }
+                        for(int j = 0; j < chunks; j++) {
+                            fread(buffer, 1, sizeof(buffer), fp);
+                            write(fd6, buffer, sizeof(buffer));
+                        }
+                        int remaining_bytes = sz - chunks * sizeof(buffer);
+                        char *remain_buffer = (char*)malloc(remaining_bytes);
+                        fread(remain_buffer, 1, remaining_bytes, fp);
+                        printf("%s \n", remain_buffer);
+                        write(fd6, remain_buffer, remaining_bytes);
+                        free(remain_buffer);
+                        //memset(buffer, 0, sizeof(buffer));
+                    //}
                 }
                 fclose(fp);
             }

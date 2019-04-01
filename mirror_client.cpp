@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
                             {
                                 /* Read From the input directory */
                                 /* and write to pipe */
-                                writeProcess(id, dir, input_dir, log_file);
+                                writeProcess(id, dir, input_dir, log_file, buffer_size);
                             }
                             default:
                             {
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
                                         exit(5);
                                     case 0: // Child Process for read
                                     {
-                                        readProcess(id, dir, log_file);
+                                        readProcess(id, dir, log_file, buffer_size);
                                     }
                                 }
                                 break;
