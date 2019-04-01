@@ -7,6 +7,7 @@
 
 extern int client_id;
 extern char buffer_mirror[100];
+extern int done;
 
 /* Read the arguments */
 int readArgs(int argc, char* argv[], int& id, char*& common_dir, char*& input_dir,
@@ -59,14 +60,14 @@ void writeLogFile(char *log_file, char *filename, int bytes, int mode, int id) {
         /* Write for bytes sent */
         fprintf(fp, "%s %s %d\n", "Sent", filename, bytes);
     }
+    else if(mode == 4) {
+        /* Write that the client has exited */
+        fprintf(fp, "%s\n", "Exit");
+    }
     fclose(fp);
 }
 
 void catchinterrupt (int signo) {
-    printf ( " \nCatching : signo =% d \n " , signo ) ;
-    printf ( "Catching : returning \n ");
-    printf("Client id: %d\n", client_id);
-    printf("Mirror dir: %s\n", buffer_mirror);
     pid_t pid;
     pid = fork();
     if(pid == 0) {
@@ -75,7 +76,6 @@ void catchinterrupt (int signo) {
     else {
         char buffer2[50];
         sprintf(buffer2, "common/%d.id", client_id);
-        printf("lalalal\n");
         pid_t pid2;
         pid2 = fork();
         if(pid2 == 0) {
@@ -84,7 +84,7 @@ void catchinterrupt (int signo) {
         else {
             int status;
             wait(&status);
-            kill(getpid(), SIGKILL);
+            done = 1;
         }
     }
 }

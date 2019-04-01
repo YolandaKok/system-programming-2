@@ -14,6 +14,8 @@ current_id=-1
 num_of_sent=0
 num_of_received=0
 
+count_exit=0
+
 while read line; do
     # if it is the first line
     for word in ${line}; do
@@ -48,6 +50,11 @@ while read line; do
             bytes_sent=$((bytes_sent+word))
             num_of_sent=$((num_of_sent+1))
         fi
+
+        if [[ ${word} == "Exit" ]]; then
+            count_exit=$((count_exit+1))
+        fi
+
         count=$((count+1))
     done
     count=0
@@ -58,3 +65,4 @@ echo "Total bytes sent: ${bytes_sent}"
 echo "Total bytes received: ${bytes_received}"
 echo "Number of files sent: ${num_of_sent}"
 echo "Number of files received: ${num_of_received}"
+echo "Number of clients that have exited: ${count_exit}"

@@ -36,7 +36,7 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file) {
         sprintf(file, "%hu", regular);
         write(fd6, file, 2);
         // Send the list of files and directories
-        printf("%s Send\n", list->getItem(i));
+        //printf("%s Send\n", list->getItem(i));
         sprintf(arr1, "%hu", strlen(list->getItem(i)));
         if(strlen(list->getItem(i)) <= 9) {
             arr1[0] = '0';

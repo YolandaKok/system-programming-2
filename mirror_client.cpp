@@ -22,6 +22,7 @@
 
 int client_id;
 char buffer_mirror[100];
+int done = 0;
 
 int main(int argc, char *argv[]) {
     int id, buffer_size;
@@ -170,8 +171,12 @@ int main(int argc, char *argv[]) {
         pid = waitpid(-1, &stat, WNOHANG);
         if(pid > 0)
             printf("child %d terminated\n", pid);
+        if(done != 0) {
+            writeLogFile(log_file, NULL, 0, 4, 0);
+            delete list;
+            /* Deallocate Memory */
+            free(common_dir); free(input_dir); free(mirror_dir); free(log_file);
+            exit(0);
+        }
     }
-
-    /* Deallocate Memory */
-    free(common_dir); free(input_dir); free(mirror_dir); free(log_file);
 }
