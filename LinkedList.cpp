@@ -11,14 +11,14 @@ LinkedList::LinkedList() {
 }
 
 void LinkedList::add(char *id) {
-    if(this->size == 0)
+    if(this->size == 0 && this->head == NULL)
         this->head = new ListNode();
     this->head->insert(id, this->head);
     this->size += 1;
 }
 
 void LinkedList::add(char *id, int regular) {
-    if(this->size == 0)
+    if(this->size == 0 && this->head == NULL)
         this->head = new ListNode();
     this->head->insert(id, this->head, regular);
     this->size += 1;
