@@ -17,6 +17,8 @@
 #include <errno.h>
 #include "IOutils.h"
 
+ssize_t readall(int fd, void *buf, size_t nbyte);
+
 void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
     printf("Child Process For Read %d\n", getpid());
     char buffer3[80];
@@ -30,10 +32,10 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
     char file[2];
     int count = 0;
     do {
-        read(fd5, file, 2);
+        readall(fd5, file, 2);
         int f = file[0] - '0';
         //printf("%d xxxxxx\n", f);
-        nread1 = read(fd5, str2, 2);
+        nread1 = readall(fd5, str2, 2);
         //printf("Length of the filename: %c %c\n", str2[0], str2[1]);
         int x1 = str2[0] - '0';
         int x2 = str2[1] - '0';
@@ -45,7 +47,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
 
         if(f) {
             // Read the name of the file or directory
-            read(fd5, str1, number);
+            readall(fd5, str1, number);
             str1[number] = '\0';
             //printf("Name %s\n", str1);
             // Let's create the file
@@ -71,7 +73,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
                 open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
             }
             int b;
-            read(fd5, &b, sizeof(b));
+            readall(fd5, &b, sizeof(b));
             printf("%d INTTT\n", b);
             char buffer[buffer_size];
             int chunks = b / buffer_size;
@@ -86,14 +88,17 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             FILE *fp = fopen(buffer5, "w");
             for(int j = 0; j < chunks; j++) {
                 //memset(buffer, 0, sizeof(buffer));
-                read(fd5, buffer, buffer_size);
+                //int nread = read(fd5, buffer, buffer_size);
+                readall(fd5, buffer, buffer_size);
+                printf("%d READ\n", nread);
                 buffer[buffer_size]='\0';
                 printf("Yeah: %s\n\n", buffer);
                 fprintf(fp, "%s", buffer);
             }
             int remaining_bytes = b - buffer_size * chunks;
             char *remain_buffer = (char*)malloc(remaining_bytes);
-            read(fd5, remain_buffer, remaining_bytes);
+            //read(fd5, remain_buffer, remaining_bytes);
+            readall(fd5, remain_buffer, remaining_bytes);
             remain_buffer[remaining_bytes]='\0';
             fprintf(fp, "%s", remain_buffer);
             fclose(fp);
@@ -130,4 +135,21 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
         // create the file and put it inside
     }while(!(str2[0] == '0' && str2[1] == '0'));
     exit(0);
+}
+
+ssize_t readall(int fd, void *buf, size_t nbyte) {
+    ssize_t nread = 0, n;
+
+    do {
+        if((n = read(fd, &((char*)buf)[nread], nbyte - nread)) == -1) {
+            if(errno == EINTR)
+                continue;
+            else
+                return -1;
+        }
+        if(n == 0)
+            return nread;
+        nread += n;
+    }while(nread < nbyte);
+    return nread;
 }
