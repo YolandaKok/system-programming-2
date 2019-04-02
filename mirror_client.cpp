@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
     act.sa_handler = catchinterrupt;
     sigfillset(&( act.sa_mask));
     sigaction( SIGINT, &act , NULL);
+    sigaction( SIGQUIT, &act, NULL);
     /* End of signal handler initialization */
 
     char buffer[50];
