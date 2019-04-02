@@ -74,7 +74,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             read(fd5, &b, sizeof(b));
             printf("%d INTTT\n", b);
             char buffer[buffer_size];
-            int chunks = b / sizeof(buffer);
+            int chunks = b / buffer_size;
             /*if(b % 200 != 0) {
                 chunks = (b / 200) + 1;
             }
@@ -86,12 +86,15 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             FILE *fp = fopen(buffer5, "w");
             for(int j = 0; j < chunks; j++) {
                 //memset(buffer, 0, sizeof(buffer));
-                read(fd5, buffer, sizeof(buffer));
+                read(fd5, buffer, buffer_size);
+                buffer[buffer_size]='\0';
+                printf("Yeah: %s\n\n", buffer);
                 fprintf(fp, "%s", buffer);
             }
-            int remaining_bytes = b - sizeof(buffer) * chunks;
+            int remaining_bytes = b - buffer_size * chunks;
             char *remain_buffer = (char*)malloc(remaining_bytes);
             read(fd5, remain_buffer, remaining_bytes);
+            remain_buffer[remaining_bytes]='\0';
             fprintf(fp, "%s", remain_buffer);
             fclose(fp);
             /* Write to the file */

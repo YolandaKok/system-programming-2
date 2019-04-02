@@ -57,7 +57,7 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, i
             write(fd6, &sz, sizeof(sz));
             /* Loop to write the whole file */
             char buffer[buffer_size];
-            int chunks = sz / sizeof(buffer);
+            int chunks = sz / buffer_size;
             int bytesRead;
             if(sz > 0) {
                 fp = fopen(buff, "r");
@@ -68,10 +68,10 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, i
                     //{
                         // process bytesRead worth of data in buffer
                         for(int j = 0; j < chunks; j++) {
-                            fread(buffer, 1, sizeof(buffer), fp);
-                            write(fd6, buffer, sizeof(buffer));
+                            fread(buffer, 1, buffer_size, fp);
+                            write(fd6, buffer, buffer_size);
                         }
-                        int remaining_bytes = sz - chunks * sizeof(buffer);
+                        int remaining_bytes = sz - chunks * buffer_size;
                         char *remain_buffer = (char*)malloc(remaining_bytes);
                         fread(remain_buffer, 1, remaining_bytes, fp);
                         printf("%s \n", remain_buffer);
