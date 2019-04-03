@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <wait.h>
 #include <signal.h>
+#include "Tools.h"
 #include "SignalHandling.h"
 #include "LinkedList.h"
 #include "dfs_directories.h"
@@ -51,20 +52,22 @@ int main(int argc, char *argv[]) {
     sigaction( SIGINT, &act , NULL);
     sigaction( SIGQUIT, &act, NULL);
     /* End of signal handler initialization */
-
-    char buffer[50];
-
     writeLogFile(log_file, NULL, 0, 1, id);
 
-    sprintf(buffer, "./common/%d.id", id);
+    /* Allocate Buffer for string */
+    char *buffer = (char*)malloc(strlen(common_dir) + numOfDigits(id) + 6);
+    sprintf(buffer, "%s/%d.id", common_dir, id);
     /* Write file with the id to the common dir */
     int fd;
     fd = open(buffer, O_RDWR|O_CREAT|O_TRUNC, 0777);
-    char buffer1[4];
+    free(buffer);
+    //char buffer1[4];
+    char *pid_buffer = (char*)malloc(numOfDigits(getpid()) + 1);
     /* Write inside this file */
-    sprintf(buffer1, "%d", getpid());
-    write(fd, buffer1, 5);
+    sprintf(pid_buffer, "%d", getpid());
+    write(fd, pid_buffer, getpid());
     close(fd);
+    free(pid_buffer);
 
     DIR *d, *d1;
     pid_t pid, pid1;
@@ -102,9 +105,10 @@ int main(int argc, char *argv[]) {
                 if(pid2 == 0) {
                     printf("Item: %d\n", id_item);
                     printf("File: %s \n", mirror_dir);
-                    char buffer[100];
+                    //char buffer[100];
+                    char *buffer = (char*)malloc(strlen(mirror_dir) + numOfDigits(id_item) + 4);
                     sprintf(buffer, "%s/%d", mirror_dir, id_item);
-                    printf("%s \n", buffer);
+                    free(buffer);
                     execl("/bin/rm", "rm", "-rf", buffer, NULL) ;
                 }
                 break;
