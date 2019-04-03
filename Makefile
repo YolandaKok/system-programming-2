@@ -12,7 +12,9 @@ readProcess.o: readProcess.cpp
 	g++ -c readProcess.cpp
 writeProcess.o: writeProcess.cpp
 	g++ -c writeProcess.cpp
-all: mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o readProcess.o writeProcess.o
-	g++ -o mirror_client mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o readProcess.o writeProcess.o
+SignalHandling.o: SignalHandling.cpp
+	g++ -c SignalHandling.cpp
+all: mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o readProcess.o writeProcess.o SignalHandling.o
+	g++ -o mirror_client mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o readProcess.o writeProcess.o SignalHandling.o
 clean:
 	rm -f *.o mirror_client

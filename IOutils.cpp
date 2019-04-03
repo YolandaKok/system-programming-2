@@ -5,10 +5,6 @@
 #include <wait.h>
 #include <signal.h>
 
-extern int client_id;
-extern char buffer_mirror[100];
-extern int done;
-
 /* Read the arguments */
 int readArgs(int argc, char* argv[], int& id, char*& common_dir, char*& input_dir,
              char*& mirror_dir, int& buffer_size, char*& log_file) {
@@ -65,26 +61,4 @@ void writeLogFile(char *log_file, char *filename, int bytes, int mode, int id) {
         fprintf(fp, "%s\n", "Exit");
     }
     fclose(fp);
-}
-
-void catchinterrupt (int signo) {
-    pid_t pid;
-    pid = fork();
-    if(pid == 0) {
-        execl("/bin/rm", "rm", "-rf", buffer_mirror, NULL) ;
-    }
-    else {
-        char buffer2[50];
-        sprintf(buffer2, "common/%d.id", client_id);
-        pid_t pid2;
-        pid2 = fork();
-        if(pid2 == 0) {
-            execl("/bin/rm", "rm", buffer2, NULL);
-        }
-        else {
-            int status;
-            wait(&status);
-            done = 1;
-        }
-    }
 }

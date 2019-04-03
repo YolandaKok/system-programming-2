@@ -11,17 +11,13 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <wait.h>
+#include <signal.h>
+#include "SignalHandling.h"
 #include "LinkedList.h"
 #include "dfs_directories.h"
 #include "readProcess.h"
 #include "writeProcess.h"
-#include <signal.h>
 
-#define EVENT_SIZE  ( sizeof (struct inotify_event) )
-#define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
-
-int client_id;
-char buffer_mirror[100];
 int done = 0;
 
 int main(int argc, char *argv[]) {
@@ -48,8 +44,6 @@ int main(int argc, char *argv[]) {
         mkdir(common_dir, 0777);
     }
 
-    client_id = id;
-    strcpy(buffer_mirror, mirror_dir);
     /* Initialize signal handler */
     static struct sigaction act;
     act.sa_handler = catchinterrupt;
@@ -176,8 +170,8 @@ int main(int argc, char *argv[]) {
             writeLogFile(log_file, NULL, 0, 4, 0);
             delete list;
             /* Deallocate Memory */
-            free(common_dir); free(input_dir); free(mirror_dir); free(log_file);
-            exit(0);
+            free(common_dir); free(input_dir); free(log_file);
+            exit_client(mirror_dir, id);
         }
     }
 }

@@ -45,14 +45,12 @@ void listdir(const char *name, int level, LinkedList *list)
             path[len] = 0;
             if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
                 continue;
-            //printf("Path: %s Directory: %*s%s\n", path, level*2, "", entry->d_name);
             list->add(path, isRegular(path));
             listdir(path, level + 1, list);
         }
         else{
             char path[1024];
             int len = snprintf(path, sizeof(path)-1, "%s/%s", name, entry->d_name);
-            //printf("Path %s, File: %*s- %s\n", path, level*2, "", entry->d_name);
             list->add(path, isRegular(path));
         }
     } while (entry = readdir(dir));
@@ -74,15 +72,3 @@ void removeInputDirectoryFromList(char *input_prefix, LinkedList *list) {
         removeInputDirectory(list->getItem(i), input_prefix);
     }
 }
-
-
-/*int main(int argc, char *argv[]) {
-    LinkedList *list = new LinkedList();
-    listdir(argv[1], 0, list);
-    removeInputDirectoryFromList(argv[1], list);
-    for(int i = 0; i < list->length(); i++) {
-        printf("%s %d\n", list->getItem(i), list->getListNodeItem(i)->getRegular());
-    }
-
-    delete list;
-}*/
