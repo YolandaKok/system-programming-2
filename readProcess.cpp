@@ -17,8 +17,6 @@
 #include <errno.h>
 #include "IOutils.h"
 
-ssize_t readall(int fd, void *buf, size_t nbyte);
-
 void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
     printf("Child Process For Read %d\n", getpid());
     char buffer3[80];
@@ -35,14 +33,10 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
     do {
         readall(fd5, file, 2);
         int f = file[0] - '0';
-        //printf("%d xxxxxx\n", f);
         nread1 = readall(fd5, str2, 2);
-        //printf("Length of the filename: %c %c\n", str2[0], str2[1]);
         int x1 = str2[0] - '0';
         int x2 = str2[1] - '0';
-        //printf("%d x1 %d x2\n", x1, x2);
         int number = x1 * 10 + x2;
-        //printf("%d NUMBER\n", number);
         if(str2[0] == '0' && str2[1] == '0')
             break;
 
@@ -50,18 +44,15 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             // Read the name of the file or directory
             readall(fd5, str1, number);
             str1[number] = '\0';
-            //printf("Name %s\n", str1);
             // Let's create the file
             char buffer4[80];
             sprintf(buffer4, "%d.mirror/%d", id, atoi(dir->d_name));
-            //printf("%s xixi\n", buffer4);
             // Check if directory exists
             DIR* dir = opendir(buffer4);
             if (dir)
             {
                 char buffer5[80];
                 sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
-                //printf("Lolo: %s\n", buffer5);
                 open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
                 closedir(dir);
             }
@@ -70,34 +61,21 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
                 mkdir(buffer4, 0777);
                 char buffer5[80];
                 sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
-               // printf("Loli: %s\n", buffer5);
                 open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
             }
             int b;
             readall(fd5, &b, sizeof(b));
-            printf("%d INTTT\n", b);
             int chunks = b / buffer_size;
-            /*if(b % 200 != 0) {
-                chunks = (b / 200) + 1;
-            }
-            else {
-                chunks = (b/200);
-            }*/
             char buffer5[100];
             sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
             FILE *fp = fopen(buffer5, "w");
             for(int j = 0; j < chunks; j++) {
-                //memset(buffer, 0, sizeof(buffer));
-                //int nread = read(fd5, buffer, buffer_size);
                 int nread = readall(fd5, buffer, buffer_size);
-                //printf("%d READ\n", nread);
                 buffer[buffer_size]='\0';
-                //printf("Yeah: %s\n\n", buffer);
                 fprintf(fp, "%s", buffer);
             }
             int remaining_bytes = b - buffer_size * chunks;
             char *remain_buffer = (char*)malloc(remaining_bytes + 1);
-            //read(fd5, remain_buffer, remaining_bytes);
             readall(fd5, remain_buffer, remaining_bytes);
             remain_buffer[remaining_bytes]='\0';
             fprintf(fp, "%s", remain_buffer);
@@ -109,17 +87,14 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
         else {
             read(fd5, str1, number);
             str1[number] = '\0';
-            //printf("Name LALA%s\n", str1);
             char buffer4[80];
             sprintf(buffer4, "%d.mirror/%d", id, atoi(dir->d_name));
-           // printf("%s xixi\n", buffer4);
             // Check if directory exists
             DIR* dir = opendir(buffer4);
             if (dir)
             {
                 char buffer5[80];
                 sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
-               // printf("Lolo: %s\n", buffer5);
                 mkdir(buffer5, 0777);
                 closedir(dir);
             }
@@ -134,11 +109,14 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
 
         // If does not exists just create it
         // create the file and put it inside
-    }while(!(str2[0] == '0' && str2[1] == '0'));
+    } while(!(str2[0] == '0' && str2[1] == '0'));
     free(buffer);
     exit(0);
 }
 
+/* Use Read All function to catch the EINTR signal that may interrupt the read process */
+/* Secures that nbytes will be read from read */
+/* Source: Programming with Unix. Author: Marc J. Rochkind. page 118 */
 ssize_t readall(int fd, void *buf, size_t nbyte) {
     ssize_t nread = 0, n;
 

@@ -3,6 +3,7 @@
 //
 
 #include "readProcess.h"
+#include "writeProcess.h"
 #include "LinkedList.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -13,6 +14,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <errno.h>
 #include "dfs_directories.h"
 #include "IOutils.h"
 
@@ -34,18 +36,17 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, i
         int regular = list->getListNodeItem(i)->getRegular();
         char file[2];
         sprintf(file, "%hu", regular);
-        write(fd6, file, 2);
+        writeall(fd6, file, 2);
         // Send the list of files and directories
-        //printf("%s Send\n", list->getItem(i));
         sprintf(arr1, "%hu", strlen(list->getItem(i)));
         if(strlen(list->getItem(i)) <= 9) {
             arr1[0] = '0';
             sprintf(&arr1[1], "%hu", strlen(list->getItem(i)));
         }
-        write(fd6, arr1, 2);
+        writeall(fd6, arr1, 2);
         /* Write the path to the file */
         strcpy(arr1, list->getItem(i));
-        write(fd6, arr1, strlen(list->getItem(i)));
+        writeall(fd6, arr1, strlen(list->getItem(i)));
         /* If it is regular write the length of the data */
         if(regular) {
             char buff[100];
@@ -54,7 +55,7 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, i
             fseek(fp, 0L, SEEK_END);
             int sz = ftell(fp);
             fclose(fp);
-            write(fd6, &sz, sizeof(sz));
+            writeall(fd6, &sz, sizeof(sz));
             /* Loop to write the whole file */
             char buffer[buffer_size];
             int chunks = sz / buffer_size;
@@ -63,22 +64,16 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, i
                 fp = fopen(buff, "r");
                 if (fp != NULL)
                 {
-                    // read up to sizeof(buffer) bytes
-                    //while ((bytesRead = fread(buffer, 1, sizeof(buffer), fp)) > 0)
-                    //{
-                        // process bytesRead worth of data in buffer
-                        for(int j = 0; j < chunks; j++) {
-                            fread(buffer, 1, buffer_size, fp);
-                            write(fd6, buffer, buffer_size);
-                        }
-                        int remaining_bytes = sz - chunks * buffer_size;
-                        char *remain_buffer = (char*)malloc(remaining_bytes);
-                        fread(remain_buffer, 1, remaining_bytes, fp);
-                        printf("%s \n", remain_buffer);
-                        write(fd6, remain_buffer, remaining_bytes);
-                        free(remain_buffer);
-                        //memset(buffer, 0, sizeof(buffer));
-                    //}
+                    // Process File
+                    for(int j = 0; j < chunks; j++) {
+                        fread(buffer, 1, buffer_size, fp);
+                        writeall(fd6, buffer, buffer_size);
+                    }
+                    int remaining_bytes = sz - chunks * buffer_size;
+                    char *remain_buffer = (char*)malloc(remaining_bytes);
+                    fread(remain_buffer, 1, remaining_bytes, fp);
+                    writeall(fd6, remain_buffer, remaining_bytes);
+                    free(remain_buffer);
                 }
                 fclose(fp);
             }
@@ -90,10 +85,26 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, i
     int regular = 2;
     char file[2];
     sprintf(file, "%hu", regular);
-    write(fd6, file, 2);
+    writeall(fd6, file, 2);
     char arrr[2];
     strcpy(arrr, "00");
-    write(fd6, arrr, 2);
+    writeall(fd6, arrr, 2);
     delete list;
     exit(0);
+}
+
+/* Source: Programming with Unix. Author: Marc J. Rochkind. page 117 */
+ssize_t writeall(int fd, const void *buf, size_t nbyte) {
+    ssize_t nwritten = 0, n;
+
+    do {
+        if((n = write(fd, &((const char *)buf)[nwritten], nbyte - nwritten)) == -1) {
+            if (errno == EINTR)
+                continue;
+            else
+                return -1;
+        }
+        nwritten += n;
+    } while(nwritten < nbyte);
+    return nwritten;
 }
