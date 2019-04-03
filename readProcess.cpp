@@ -31,6 +31,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
     char str2[2];
     char file[2];
     int count = 0;
+    char *buffer = (char*)malloc((buffer_size + 1) * sizeof(char));
     do {
         readall(fd5, file, 2);
         int f = file[0] - '0';
@@ -75,7 +76,6 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             int b;
             readall(fd5, &b, sizeof(b));
             printf("%d INTTT\n", b);
-            char buffer[buffer_size];
             int chunks = b / buffer_size;
             /*if(b % 200 != 0) {
                 chunks = (b / 200) + 1;
@@ -89,19 +89,20 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             for(int j = 0; j < chunks; j++) {
                 //memset(buffer, 0, sizeof(buffer));
                 //int nread = read(fd5, buffer, buffer_size);
-                readall(fd5, buffer, buffer_size);
-                printf("%d READ\n", nread);
+                int nread = readall(fd5, buffer, buffer_size);
+                //printf("%d READ\n", nread);
                 buffer[buffer_size]='\0';
-                printf("Yeah: %s\n\n", buffer);
+                //printf("Yeah: %s\n\n", buffer);
                 fprintf(fp, "%s", buffer);
             }
             int remaining_bytes = b - buffer_size * chunks;
-            char *remain_buffer = (char*)malloc(remaining_bytes);
+            char *remain_buffer = (char*)malloc(remaining_bytes + 1);
             //read(fd5, remain_buffer, remaining_bytes);
             readall(fd5, remain_buffer, remaining_bytes);
             remain_buffer[remaining_bytes]='\0';
             fprintf(fp, "%s", remain_buffer);
             fclose(fp);
+            free(remain_buffer);
             /* Write to the file */
             writeLogFile(log_file, str1, b, 2, 0);
         }
@@ -134,6 +135,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
         // If does not exists just create it
         // create the file and put it inside
     }while(!(str2[0] == '0' && str2[1] == '0'));
+    free(buffer);
     exit(0);
 }
 
