@@ -9,7 +9,10 @@
 extern int done;
 
 void catchinterrupt (int signo) {
-    done = 1;
+    if(signo == SIGINT || signo == SIGQUIT)
+        done = 1;
+    if(signo == SIGUSR1)
+        printf("Child Error !\n");
 }
 
 void exit_client(char *common_dir, char *mirror_dir, int id) {

@@ -49,8 +49,9 @@ int main(int argc, char *argv[]) {
     static struct sigaction act;
     act.sa_handler = catchinterrupt;
     sigfillset(&( act.sa_mask));
-    sigaction( SIGINT, &act , NULL);
-    sigaction( SIGQUIT, &act, NULL);
+    sigaction(SIGINT, &act , NULL);
+    sigaction(SIGQUIT, &act, NULL);
+    sigaction(SIGUSR1, &act, NULL);
     /* End of signal handler initialization */
     writeLogFile(log_file, NULL, 0, 1, id);
 
@@ -150,7 +151,7 @@ int main(int argc, char *argv[]) {
                                         exit(5);
                                     case 0: // Child Process for read
                                     {
-                                        readProcess(id, dir, log_file, common_dir, mirror_dir, buffer_size);
+                                        readProcess(id, dir, log_file, common_dir, mirror_dir, buffer_size, pid);
                                     }
                                 }
                                 break;

@@ -15,15 +15,21 @@
 #include <sys/stat.h>
 #include "dfs_directories.h"
 #include <errno.h>
+#include <signal.h>
 #include "IOutils.h"
 
-void readProcess(int id, struct dirent *dir, char *log_file, char *common_dir, char *mirror_dir, int buffer_size) {
+void readProcess(int id, struct dirent *dir, char *log_file, char *common_dir, char *mirror_dir, int buffer_size, pid_t pid) {
     printf("Child Process For Read %d\n", getpid());
     char buffer3[80];
     sprintf(buffer3, "%s/id%d_to_id%d.fifo", common_dir, atoi(dir->d_name), id);
     int id2 = atoi(dir->d_name);
     mkfifo(buffer3, 0777);
     int fd5 = open(buffer3, O_RDONLY | O_CREAT, 0777);
+    if(fd5 < 0) {
+        kill(getppid(), SIGUSR1);
+        kill(pid, SIGKILL);
+        exit(2);
+    }
     int nread, nread1;
     char str1[50];
     char str2[2];
