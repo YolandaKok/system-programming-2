@@ -108,8 +108,8 @@ int main(int argc, char *argv[]) {
                     //char buffer[100];
                     char *buffer = (char*)malloc(strlen(mirror_dir) + numOfDigits(id_item) + 4);
                     sprintf(buffer, "%s/%d", mirror_dir, id_item);
-                    free(buffer);
                     execl("/bin/rm", "rm", "-rf", buffer, NULL) ;
+                    free(buffer);
                 }
                 break;
             }

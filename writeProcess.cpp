@@ -38,10 +38,12 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, i
         sprintf(file, "%hu", regular);
         writeall(fd6, file, 2);
         // Send the list of files and directories
-        sprintf(arr1, "%hu", strlen(list->getItem(i)));
+        short int size1 = strlen(list->getItem(i));
+        sprintf(arr1, "%hu", size1);
         if(strlen(list->getItem(i)) <= 9) {
             arr1[0] = '0';
-            sprintf(&arr1[1], "%hu", strlen(list->getItem(i)));
+            short int size2 = strlen(list->getItem(i));
+            sprintf(&arr1[1], "%hu", size2);
         }
         writeall(fd6, arr1, 2);
         /* Write the path to the file */
