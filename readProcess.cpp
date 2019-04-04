@@ -17,10 +17,10 @@
 #include <errno.h>
 #include "IOutils.h"
 
-void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
+void readProcess(int id, struct dirent *dir, char *log_file, char *common_dir, char *mirror_dir, int buffer_size) {
     printf("Child Process For Read %d\n", getpid());
     char buffer3[80];
-    sprintf(buffer3, "common/id%d_to_id%d.fifo", atoi(dir->d_name), id);
+    sprintf(buffer3, "%s/id%d_to_id%d.fifo", common_dir, atoi(dir->d_name), id);
     int id2 = atoi(dir->d_name);
     mkfifo(buffer3, 0777);
     int fd5 = open(buffer3, O_RDONLY | O_CREAT, 0777);
@@ -46,13 +46,13 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             str1[number] = '\0';
             // Let's create the file
             char buffer4[80];
-            sprintf(buffer4, "%d.mirror/%d", id, atoi(dir->d_name));
+            sprintf(buffer4, "%s/%d", mirror_dir, atoi(dir->d_name));
             // Check if directory exists
             DIR* dir = opendir(buffer4);
             if (dir)
             {
                 char buffer5[80];
-                sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+                sprintf(buffer5, "%s/%d%s", mirror_dir, id2, str1);
                 open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
                 closedir(dir);
             }
@@ -60,14 +60,14 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             {
                 mkdir(buffer4, 0777);
                 char buffer5[80];
-                sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+                sprintf(buffer5, "%s/%d%s", mirror_dir, id2, str1);
                 open(buffer5, O_WRONLY | O_APPEND | O_CREAT, 0777);
             }
             int b;
             readall(fd5, &b, sizeof(b));
             int chunks = b / buffer_size;
             char buffer5[100];
-            sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+            sprintf(buffer5, "%s/%d%s", mirror_dir, id2, str1);
             FILE *fp = fopen(buffer5, "w");
             for(int j = 0; j < chunks; j++) {
                 int nread = readall(fd5, buffer, buffer_size);
@@ -88,13 +88,13 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             read(fd5, str1, number);
             str1[number] = '\0';
             char buffer4[80];
-            sprintf(buffer4, "%d.mirror/%d", id, atoi(dir->d_name));
+            sprintf(buffer4, "%s/%d", mirror_dir, atoi(dir->d_name));
             // Check if directory exists
             DIR* dir = opendir(buffer4);
             if (dir)
             {
                 char buffer5[80];
-                sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+                sprintf(buffer5, "%s/%d%s", mirror_dir, id2, str1);
                 mkdir(buffer5, 0777);
                 closedir(dir);
             }
@@ -102,7 +102,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
             {
                 mkdir(buffer4, 0777);
                 char buffer5[80];
-                sprintf(buffer5, "%d.mirror/%d%s", id, id2, str1);
+                sprintf(buffer5, "%s/%d%s", mirror_dir, id2, str1);
                 mkdir(buffer5, 0777);
             }
         }
@@ -111,6 +111,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size) {
         // create the file and put it inside
     } while(!(str2[0] == '0' && str2[1] == '0'));
     free(buffer);
+    unlink(buffer3);
     exit(0);
 }
 

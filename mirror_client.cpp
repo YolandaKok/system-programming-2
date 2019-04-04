@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
                             {
                                 /* Read From the input directory */
                                 /* and write to pipe */
-                                writeProcess(id, dir, input_dir, log_file, buffer_size);
+                                writeProcess(id, dir, input_dir, log_file, common_dir, buffer_size);
                             }
                             default:
                             {
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
                                         exit(5);
                                     case 0: // Child Process for read
                                     {
-                                        readProcess(id, dir, log_file, buffer_size);
+                                        readProcess(id, dir, log_file, common_dir, mirror_dir, buffer_size);
                                     }
                                 }
                                 break;
@@ -170,8 +170,8 @@ int main(int argc, char *argv[]) {
             writeLogFile(log_file, NULL, 0, 4, 0);
             delete list;
             /* Deallocate Memory */
-            free(common_dir); free(input_dir); free(log_file);
-            exit_client(mirror_dir, id);
+            free(input_dir); free(log_file);
+            exit_client(common_dir, mirror_dir, id);
         }
     }
 }

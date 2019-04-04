@@ -3,6 +3,6 @@
 #define SYSTEM_PROGRAMMING_2_SIGNALHANDLING_H
 
 void catchinterrupt (int signo);
-void exit_client(char *mirror_dir, int id);
+void exit_client(char *common_dir, char *mirror_dir, int id);
 
 #endif //SYSTEM_PROGRAMMING_2_SIGNALHANDLING_H

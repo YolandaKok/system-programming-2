@@ -7,7 +7,7 @@
 #ifndef SYSTEM_PROGRAMMING_2_READPROCESS_H
 #define SYSTEM_PROGRAMMING_2_READPROCESS_H
 
-void readProcess(int id, struct dirent *dir, char *log_file, int buffer_size);
+void readProcess(int id, struct dirent *dir, char *log_file, char *common_dir, char *mirror_dir, int buffer_size);
 ssize_t readall(int fd, void *buf, size_t nbyte);
 
 #endif //SYSTEM_PROGRAMMING_2_READPROCESS_H

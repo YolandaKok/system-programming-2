@@ -12,7 +12,7 @@ void catchinterrupt (int signo) {
     done = 1;
 }
 
-void exit_client(char *mirror_dir, int id) {
+void exit_client(char *common_dir, char *mirror_dir, int id) {
     pid_t pid;
     pid = fork();
     if(pid == 0) {
@@ -20,7 +20,7 @@ void exit_client(char *mirror_dir, int id) {
     }
     else {
         char buffer2[50];
-        sprintf(buffer2, "common/%d.id", id);
+        sprintf(buffer2, "%s/%d.id", common_dir, id);
         pid_t pid2;
         pid2 = fork();
         if(pid2 == 0) {
@@ -30,6 +30,7 @@ void exit_client(char *mirror_dir, int id) {
             int status;
             wait(&status);
             free(mirror_dir);
+            free(common_dir);
             exit(0);
         }
     }
