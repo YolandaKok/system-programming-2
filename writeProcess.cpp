@@ -89,7 +89,7 @@ void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, i
     sprintf(file, "%hu", regular);
     writeall(fd6, file, 2);
     char arrr[2];
-    strcpy(arrr, "00");
+    strncpy(arrr, "00", 2);
     writeall(fd6, arrr, 2);
     delete list;
     exit(0);
