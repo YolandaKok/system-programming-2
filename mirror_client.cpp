@@ -58,16 +58,12 @@ int main(int argc, char *argv[]) {
     char *buffer = (char*)malloc(strlen(common_dir) + numOfDigits(id) + 6);
     sprintf(buffer, "%s/%d.id", common_dir, id);
     /* Write file with the id to the common dir */
-    int fd;
-    fd = open(buffer, O_RDWR|O_CREAT|O_TRUNC, 0777);
+    FILE *fd;
+    fd = fopen(buffer, "w");
     free(buffer);
-    //char buffer1[4];
-    char *pid_buffer = (char*)malloc(numOfDigits(getpid()) + 1);
     /* Write inside this file */
-    sprintf(pid_buffer, "%d", getpid());
-    write(fd, pid_buffer, getpid());
-    close(fd);
-    free(pid_buffer);
+    fprintf(fd, "%d", getpid());
+    fclose(fd);
 
     DIR *d, *d1;
     pid_t pid, pid1;
