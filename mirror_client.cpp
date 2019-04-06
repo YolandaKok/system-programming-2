@@ -19,6 +19,9 @@
 #include "readProcess.h"
 #include "writeProcess.h"
 
+void find_active_clients(char *common_dir, LinkedList *active_clients_list);
+void client_has_exited(LinkedList *active_client_list, LinkedList *list, char *common_dir, char *mirror_dir);
+
 int done = 0;
 
 int main(int argc, char *argv[]) {
@@ -74,45 +77,14 @@ int main(int argc, char *argv[]) {
     LinkedList *list = new LinkedList();
 
     while(1) {
+
         /* Open the directory and find if some client has left the network */
-        LinkedList *list2 = new LinkedList();
-        d1 = opendir(common_dir);
-        int ok;
-        if(d1) {
-            while((dir1 = readdir(d1)) != NULL) {
-                if(dir1->d_name[strlen(dir1->d_name)-1] == 'd') {
-                    list2->add(dir1->d_name);
-                }
-            }
-        }
-        closedir(d1);
+        LinkedList *active_clients_list = new LinkedList();
+        find_active_clients(common_dir, active_clients_list);
 
-        /* Check if everything in list 2 is also in list 1 */
-        for(int k = 0; k < list->length(); k++) {
-            if(list2->find(list->getItem(k))) {
+        client_has_exited(active_clients_list, list, common_dir, mirror_dir);
 
-            }
-            else {
-                printf("Not Found\n");
-                char *item = list->getItem(k);
-                int id_item = atoi(list->getItem(k));
-                list->deleteItem(item);
-                pid_t pid2;
-                pid2 = fork();
-                if(pid2 == 0) {
-                    printf("Item: %d\n", id_item);
-                    printf("File: %s \n", mirror_dir);
-                    //char buffer[100];
-                    char *buffer = (char*)malloc(strlen(mirror_dir) + numOfDigits(id_item) + 4);
-                    sprintf(buffer, "%s/%d", mirror_dir, id_item);
-                    execl("/bin/rm", "rm", "-rf", buffer, NULL) ;
-                    free(buffer);
-                }
-                break;
-            }
-        }
-
-        delete list2;
+        delete active_clients_list;
 
         d = opendir(common_dir);
         // Find the directories
@@ -173,6 +145,46 @@ int main(int argc, char *argv[]) {
             /* Deallocate Memory */
             free(input_dir); free(log_file);
             exit_client(common_dir, mirror_dir, id);
+        }
+    }
+}
+
+void find_active_clients(char *common_dir, LinkedList *active_clients_list) {
+    DIR *d1;
+    struct dirent *dir1;
+
+    d1 = opendir(common_dir);
+    int ok;
+    if(d1) {
+        while((dir1 = readdir(d1)) != NULL) {
+            if(dir1->d_name[strlen(dir1->d_name)-1] == 'd') {
+                active_clients_list->add(dir1->d_name);
+            }
+        }
+    }
+    closedir(d1);
+}
+
+void client_has_exited(LinkedList *active_clients_list, LinkedList *list, char *common_dir, char *mirror_dir) {
+    /* Check if everything in list 2 is also in list 1 */
+    for(int k = 0; k < list->length(); k++) {
+        if(active_clients_list->find(list->getItem(k))) {
+
+        }
+        else {
+            printf("Client with id: %s has left the network\n", list->getItem(k));
+            char *item = list->getItem(k);
+            int id_item = atoi(list->getItem(k));
+            list->deleteItem(item);
+            pid_t pid2;
+            pid2 = fork();
+            if(pid2 == 0) {
+                char *buffer = (char*)malloc(strlen(mirror_dir) + numOfDigits(id_item) + 4);
+                sprintf(buffer, "%s/%d", mirror_dir, id_item);
+                printf("Deleting folder: %s\n", buffer);
+                execl("/bin/rm", "rm", "-rf", buffer, NULL) ;
+                free(buffer);
+            }
         }
     }
 }
