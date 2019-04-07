@@ -18,10 +18,10 @@
 #include "dfs_directories.h"
 #include "IOutils.h"
 
-void writeProcess(int id, struct dirent *dir, char *input_dir, char *log_file, char *common_dir, int buffer_size) {
+void writeProcess(int id, int id2, char *input_dir, char *log_file, char *common_dir, int buffer_size) {
     printf("Child Process2 for write to pipe %d\n", getpid());
     char buffer4[80];
-    sprintf(buffer4, "%s/id%d_to_id%d.fifo", common_dir, id, atoi(dir->d_name));
+    sprintf(buffer4, "%s/id%d_to_id%d.fifo", common_dir, id, id2);
     mkfifo(buffer4, 0777);
     int fd6 = open(buffer4, O_WRONLY | O_CREAT, 0777);
     // Find the files that you want to send

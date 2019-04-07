@@ -15,6 +15,8 @@ ListNode::ListNode(char* id) {
     //this->coin = coin;
     this->id = (char*)malloc(strlen(id) + 1);
     strcpy(this->id, id);
+    this->tries = 0;
+    this->completed = 0;
     this->next = NULL;
 }
 
@@ -22,6 +24,8 @@ ListNode::ListNode(char* id, int regular) {
     this->id = (char*)malloc(strlen(id) + 1);
     strcpy(this->id, id);
     this->regular = regular;
+    this->tries = 0;
+    this->completed = 0;
     this->next = NULL;
 }
 
@@ -37,6 +41,8 @@ void ListNode::insert(char* id, ListNode *head, int regular) {
         head->id = (char*)malloc(strlen(id) + 1);
         strcpy(head->id, id);
         head->regular = regular;
+        head->tries = 0;
+        head->completed = 0;
         head->next = NULL;
     }
 }
@@ -52,6 +58,8 @@ void ListNode::insert(char* id, ListNode *head) {
     else {
         head->id = (char*)malloc(strlen(id) + 1);
         strcpy(head->id, id);
+        head->tries = 0;
+        head->completed = 0;
         head->next = NULL;
     }
 }
@@ -70,6 +78,40 @@ int ListNode::find(char *id, ListNode *head) {
         current = current->next;
     }
     return 0;
+}
+
+ListNode* ListNode::getItemById(char *id, ListNode *head) {
+    /* Add to the wallet */
+    ListNode *current = head;
+    while( current != NULL ) {
+        /* If you find the coin just + into the amount else add a new node to the list */
+        if(strcmp(current->id, id) == 0) {
+            return current;
+        }
+        current = current->next;
+    }
+}
+
+void ListNode::update(char *id, ListNode *head, int completed) {
+    /* Add to the wallet */
+    ListNode *current = head;
+    while( current != NULL ) {
+        /* If you find the coin just + into the amount else add a new node to the list */
+        if(strcmp(current->id, id) == 0) {
+            this->completed = completed;
+            if(completed != 1)
+                this->tries += 1;
+        }
+        current = current->next;
+    }
+}
+
+int ListNode::getTries() {
+    return this->tries;
+}
+
+int ListNode::getIfComplete() {
+    return this->completed;
 }
 
 char* ListNode::getItem(int i, ListNode *head) {

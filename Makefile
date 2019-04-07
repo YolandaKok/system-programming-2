@@ -16,7 +16,11 @@ SignalHandling.o: SignalHandling.cpp
 	g++ -c SignalHandling.cpp
 Tools.o: Tools.cpp
 	g++ -c Tools.cpp
-all: mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o readProcess.o writeProcess.o SignalHandling.o Tools.o
-	g++ -o mirror_client mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o readProcess.o writeProcess.o SignalHandling.o Tools.o
+MapNode.o: MapNode.cpp
+	g++ -c MapNode.cpp
+Map.o: Map.cpp
+	g++ -c Map.cpp
+all: mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o readProcess.o writeProcess.o SignalHandling.o Tools.o MapNode.o Map.o
+	g++ -o mirror_client mirror_client.o IOutils.o LinkedList.o ListNode.o dfs_file.o readProcess.o writeProcess.o SignalHandling.o Tools.o MapNode.o Map.o
 clean:
 	rm -f *.o mirror_client

@@ -18,15 +18,15 @@
 #include <signal.h>
 #include "IOutils.h"
 
-void readProcess(int id, struct dirent *dir, char *log_file, char *common_dir, char *mirror_dir, int buffer_size, pid_t pid) {
+void readProcess(int id, int id2, char *log_file, char *common_dir, char *mirror_dir, int buffer_size, pid_t pid) {
     printf("Child Process For Read %d\n", getpid());
     char buffer3[80];
-    sprintf(buffer3, "%s/id%d_to_id%d.fifo", common_dir, atoi(dir->d_name), id);
-    int id2 = atoi(dir->d_name);
+    sprintf(buffer3, "%s/id%d_to_id%d.fifo", common_dir, id2, id);
+    //int id2 = atoi(dir->d_name);
     mkfifo(buffer3, 0777);
     int fd5 = open(buffer3, O_RDONLY | O_CREAT, 0777);
     if(fd5 < 0) {
-        kill(getppid(), SIGUSR1);
+        //kill(getppid(), SIGUSR1);
         kill(pid, SIGKILL);
         exit(2);
     }
@@ -52,7 +52,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, char *common_dir, c
             str1[number] = '\0';
             // Let's create the file
             char buffer4[80];
-            sprintf(buffer4, "%s/%d", mirror_dir, atoi(dir->d_name));
+            sprintf(buffer4, "%s/%d", mirror_dir, id2);
             // Check if directory exists
             DIR* dir = opendir(buffer4);
             if (dir)
@@ -77,6 +77,10 @@ void readProcess(int id, struct dirent *dir, char *log_file, char *common_dir, c
             FILE *fp = fopen(buffer5, "w");
             for(int j = 0; j < chunks; j++) {
                 int nread = readall(fd5, buffer, buffer_size);
+                if(nread < buffer_size) {
+                  kill(pid, SIGKILL);
+                  exit(2);
+                }
                 buffer[buffer_size]='\0';
                 fprintf(fp, "%s", buffer);
             }
@@ -94,7 +98,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, char *common_dir, c
             read(fd5, str1, number);
             str1[number] = '\0';
             char buffer4[80];
-            sprintf(buffer4, "%s/%d", mirror_dir, atoi(dir->d_name));
+            sprintf(buffer4, "%s/%d", mirror_dir, id2);
             // Check if directory exists
             DIR* dir = opendir(buffer4);
             if (dir)
@@ -118,7 +122,7 @@ void readProcess(int id, struct dirent *dir, char *log_file, char *common_dir, c
     } while(!(str2[0] == '0' && str2[1] == '0'));
     free(buffer);
     unlink(buffer3);
-    exit(0);
+    exit(1);
 }
 
 /* Use Read All function to catch the EINTR signal that may interrupt the read process */

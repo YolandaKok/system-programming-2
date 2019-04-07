@@ -7,12 +7,14 @@
 #include "SignalHandling.h"
 
 extern int done;
+extern int child_exited;
 
 void catchinterrupt (int signo) {
     if(signo == SIGINT || signo == SIGQUIT)
         done = 1;
-    if(signo == SIGUSR1)
-        printf("Child Error !\n");
+    if(signo == SIGCHLD) {
+        child_exited = 1;
+    }
 }
 
 void exit_client(char *common_dir, char *mirror_dir, int id) {

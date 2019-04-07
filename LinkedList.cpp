@@ -24,6 +24,14 @@ void LinkedList::add(char *id, int regular) {
     this->size += 1;
 }
 
+ListNode* LinkedList::getItemById(char *id) {
+    return this->head->getItemById(id, this->head);
+}
+
+void LinkedList::update(char *id, int completed) {
+    this->head->update(id, this->head, completed);
+}
+
 int LinkedList::find(char *id) {
     if(this->size == 0)
         return 0;
