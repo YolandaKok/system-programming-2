@@ -13,6 +13,7 @@
 #include <wait.h>
 #include <signal.h>
 #include "Tools.h"
+#include "Map.h"
 #include "SignalHandling.h"
 #include "LinkedList.h"
 #include "dfs_directories.h"
@@ -21,7 +22,10 @@
 
 void find_active_clients(char *common_dir, LinkedList *active_clients_list);
 void client_has_exited(LinkedList *active_client_list, LinkedList *list, char *common_dir, char *mirror_dir);
+void create_childs_for_copy(int id, struct dirent *dir, char *input_dir, char *log_file, char *common_dir, int buffer_size, Map *pids_map, char *mirror_dir);
+void create_childs_for_copy2(int id, char *current_id, char *input_dir, char *log_file, char *common_dir, int buffer_size, Map *pids_map, char *mirror_dir);
 
+int child_exited = 0;
 int done = 0;
 
 int main(int argc, char *argv[]) {
@@ -54,7 +58,7 @@ int main(int argc, char *argv[]) {
     sigfillset(&( act.sa_mask));
     sigaction(SIGINT, &act , NULL);
     sigaction(SIGQUIT, &act, NULL);
-    sigaction(SIGUSR1, &act, NULL);
+    sigaction(SIGCHLD, &act, NULL);
     /* End of signal handler initialization */
     writeLogFile(log_file, NULL, 0, 1, id);
 
@@ -70,12 +74,12 @@ int main(int argc, char *argv[]) {
     fclose(fd);
 
     DIR *d, *d1;
-    pid_t pid, pid1;
     struct dirent *dir, *dir1;
     struct stat s, s1;
     // Create a list to keep the ids
     LinkedList *list = new LinkedList();
-
+    // Map for pids
+    Map *pids_map = new Map();
     while(1) {
 
         /* Open the directory and find if some client has left the network */
@@ -96,55 +100,124 @@ int main(int argc, char *argv[]) {
                         ok = 1;
                     else
                         ok = 0;
-                    /* is this a regular file? */
                     int found = list->find(dir->d_name);
-                    if (found == 0 && (atoi(dir->d_name) != id) && ok == 1) {
-                        printf("%s\n", dir->d_name);
-                        // Fork two processes
+                    ListNode *node;
+                    if(found == 0 && (atoi(dir->d_name) != id) && ok == 1) {
                         list->add(dir->d_name);
-                        printf("Parent Process \n");
-                        int status;
-                        switch(pid = fork()) {
-                            case -1:
-                                perror("fork error");
-                                exit(4);
-                            case 0:
-                            {
-                                /* Read From the input directory */
-                                /* and write to pipe */
-                                writeProcess(id, dir, input_dir, log_file, common_dir, buffer_size);
-                            }
-                            default:
-                            {
-                                // Parent Process
-                                switch(pid1 = fork()) {
-                                    case -1:
-                                        perror("fork error");
-                                        exit(5);
-                                    case 0: // Child Process for read
-                                    {
-                                        readProcess(id, dir, log_file, common_dir, mirror_dir, buffer_size, pid);
-                                    }
-                                }
-                                break;
-                            }
+                        node = list->getItemById(dir->d_name);
+                    }
+                    else if(found == 1) {
+                        node = list->getItemById(dir->d_name);
+                    }
+                    if ((atoi(dir->d_name) != id) && ok == 1) {
+                        if(found == 0) {
+                            create_childs_for_copy(id, dir, input_dir, log_file, common_dir, buffer_size, pids_map, mirror_dir);
                         }
                       }
                 }
             }
             closedir(d);
         }
-        int stat;
-        pid_t pid;
-        pid = waitpid(-1, &stat, WNOHANG);
-        if(pid > 0)
-            printf("child %d terminated\n", pid);
+
         if(done != 0) {
             writeLogFile(log_file, NULL, 0, 4, 0);
             delete list;
+            delete pids_map;
             /* Deallocate Memory */
             free(input_dir); free(log_file);
             exit_client(common_dir, mirror_dir, id);
+        }
+        if(child_exited != 0) {
+            int stat;
+            pid_t pid;
+            pid = waitpid(-1, &stat, WNOHANG);
+            if(pid > 0) {
+                printf("Child with pid: %d terminated, Status code: %d\n", pid, WEXITSTATUS(stat));
+                if(WEXITSTATUS(stat) == 1) {
+                    printf("Read 00 and exited normally for client input %s !\n", pids_map->find(pid));
+                    list->update(pids_map->find(pid), 1);
+                }
+                if(WEXITSTATUS(stat) == 2) {
+                    printf("Error on read process !\n");
+                    // Num of tries
+                    /*list->update(pids_map->find(pid), 0);
+                    if(list->getItemById(pids_map->find(pid))->getTries() < 3) {
+                        create_childs_for_copy2(id, pids_map->find(pid), input_dir, log_file, common_dir, buffer_size, pids_map, mirror_dir);
+                    }*/
+                }
+            }
+        }
+    }
+}
+
+void create_childs_for_copy(int id, struct dirent *dir, char *input_dir, char *log_file, char *common_dir, int buffer_size, Map *pids_map, char *mirror_dir) {
+    pid_t pid, pid1;
+    printf("%s\n", dir->d_name);
+    // Fork two processes
+    printf("Parent Process \n");
+    int status;
+    switch(pid = fork()) {
+        case -1:
+            perror("fork error");
+            exit(4);
+        case 0:
+        {
+            /* Read From the input directory */
+            /* and write to pipe */
+            writeProcess(id, atoi(dir->d_name), input_dir, log_file, common_dir, buffer_size);
+        }
+        default:
+        {
+            pids_map->add(pid, dir->d_name);
+            // Parent Process
+            switch(pid1 = fork()) {
+                case -1:
+                    perror("fork error");
+                    exit(5);
+                case 0: // Child Process for read
+                {
+                    readProcess(id, atoi(dir->d_name), log_file, common_dir, mirror_dir, buffer_size, pid);
+                }
+                default:
+                    pids_map->add(pid1, dir->d_name);
+            }
+            break;
+        }
+    }
+}
+
+void create_childs_for_copy2(int id,  char *current_id, char *input_dir, char *log_file, char *common_dir, int buffer_size, Map *pids_map, char *mirror_dir) {
+    pid_t pid, pid1;
+    //printf("%s\n", current_id);
+    // Fork two processes
+    printf("Parent Process \n");
+    int status;
+    switch(pid = fork()) {
+        case -1:
+            perror("fork error");
+            exit(4);
+        case 0:
+        {
+            /* Read From the input directory */
+            /* and write to pipe */
+            writeProcess(id, atoi(current_id), input_dir, log_file, common_dir, buffer_size);
+        }
+        default:
+        {
+            pids_map->add(pid, current_id);
+            // Parent Process
+            switch(pid1 = fork()) {
+                case -1:
+                    perror("fork error");
+                    exit(5);
+                case 0: // Child Process for read
+                {
+                    readProcess(id, atoi(current_id), log_file, common_dir, mirror_dir, buffer_size, pid);
+                }
+                default:
+                    pids_map->add(pid1, current_id);
+            }
+            break;
         }
     }
 }
