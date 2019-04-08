@@ -19,14 +19,14 @@ if [[ "$2" -lt "0" ]] || [[ "$2" -eq "0" ]]; then
     exit
 fi
 
-if [[ "$3" -lt "0" ]] || [[ "$3" -eq "0" ]]; then
+if [[ "$3" -lt "0" ]]; then
     echo Error with number of directories
     exit
 fi
 
 # Check the number of levels
-if [[ "$4" -lt "0" ]] || [[ "$4" -eq "0" ]]; then
-    echo Levels have to be greater than 1
+if [[ "$4" -lt "0" ]]; then
+    echo Levels have to be greater than zero
     exit
 fi
 
